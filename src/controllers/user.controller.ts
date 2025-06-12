@@ -8,18 +8,14 @@ import { messages } from "../utils/messages";
 import { handleError } from "../utils/errHandler";
 import { StatusCodes } from "http-status-codes";
 
-export const createUser = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const createUser = async (req: Request, res: Response) => {
   try {
     const parseResult = registerSchema.parse(req.body);
     const { username, password } = parseResult;
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      apiResponse(res, StatusCodes.BAD_REQUEST, messages.EXISTING_USER);
-      return;
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.EXISTING_USER);   
     }
     const salt = await bcrypt.genSalt(10);
 
@@ -36,9 +32,7 @@ export const createUser = async (
         username: user.username,
         role: user.role,
       });
-      return;
     }
-    console.log(user);
   } catch (error) {
     handleError(res, error);
   }
