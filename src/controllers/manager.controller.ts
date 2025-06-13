@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Manager } from "../models/manager.model";
-import { managerUpdateSchema, managerZodSchema } from "../utils/zod";
+import { updateManagerSchema, managerZodSchema } from "../utils/zod";
 import { apiResponse } from "../utils/apiResponses";
 import { handleError } from "../utils/errHandler";
 import { StatusCodes } from "http-status-codes";
@@ -14,30 +14,30 @@ export const createManager = async (req: Request, res: Response) => {
 
     const existingManager = await Manager.findOne({ label });
     if (existingManager) {
-      return apiResponse(res, StatusCodes.CONFLICT, messages.EXISTING_MANAGER);
+       apiResponse(res, StatusCodes.OK, messages.EXISTING_MANAGER);
     }
 
     const manager = await Manager.create({ label, value });
     if (manager) {
-      return apiResponse(res, StatusCodes.CREATED, messages.MANAGER_CREATED, {
+       apiResponse(res, StatusCodes.CREATED, messages.MANAGER_CREATED, {
         label: manager.label,
         value: manager.value,
       });
     }
   } catch (error) {
-    return handleError(res, error);
+     handleError(res, error);
   }
 };
 
 export const getAllManagers = async (
   req: Request,
   res: Response
-): Promise<void> => {
+) => {
   try {
     const managers = await Manager.find();
     if (managers.length === 0) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_NOT_FOUND);
-      return;
+      
     }
     apiResponse(res, StatusCodes.OK, messages.MANAGER_FOUND, managers);
   } catch (error) {
@@ -61,7 +61,7 @@ export const getManagerById = async (req: Request, res: Response) => {
 export const updateManager = async (req: Request, res: Response) => {
   try {
     const managerId = req.params.id;
-    const parseData = managerUpdateSchema.parse(req.body);
+    const parseData = updateManagerSchema.parse(req.body);
 
     const existingManager = await Manager.findById(managerId);
     if (!existingManager) {

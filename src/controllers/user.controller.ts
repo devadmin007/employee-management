@@ -15,7 +15,7 @@ export const createUser = async (req: Request, res: Response) => {
 
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      apiResponse(res, StatusCodes.BAD_REQUEST, messages.EXISTING_USER);   
+      apiResponse(res, StatusCodes.OK, messages.EXISTING_USER);   
     }
     const salt = await bcrypt.genSalt(10);
 

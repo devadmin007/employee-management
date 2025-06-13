@@ -1,4 +1,3 @@
-
 export const messages = {
   //User messages
   USER_REGISTERED: "User has been registerd successfully",
@@ -19,4 +18,15 @@ export const messages = {
   MANAGER_UPDATED: "Manager has been updated successfully",
   MANAGER_NOT_UPDATED: "Manager has not been updated",
   MANAGER_DELETED: "Manager has been deleted successfully",
+
+  //TEAM MESSAGES
+  TEAM_CREATED: "Team has been created successfully",
+  EXISTING_TEAM: "Team already exists",
+  TEAM_NOT_FOUND: "Team is not found",
+  TEAMS_NOT_FOUND: "Teams are  not found",
+  TEAM_FOUND: "Team found successfully",
+  TEAMS_FOUND: "Teams found successfully",
+  TEAM_UPDATED: "Team has been updated successfully",
+  TEAM_NOT_UPDATED: "Team has not been updated",
+  TEAM_DELETED: "Team has been deleted successfully",
 };
