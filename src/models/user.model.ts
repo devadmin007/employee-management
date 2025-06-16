@@ -14,13 +14,14 @@ const userSchema = new Schema<UserDocument>(
       type: String,
       required: true,
       unique: true,
-      lowercase: true,  
+      lowercase: true,
       validate: {
-      validator: function (value) {
-        return /^[a-zA-Z0-9_-]+$/.test(value);
+        validator: function (value) {
+          return /^[a-zA-Z0-9_-]+$/.test(value);
+        },
+        message:
+          "Username must contain only alphanumeric characters, hyphens, or underscores.",
       },
-       message: "Username must contain only alphanumeric characters, hyphens, or underscores.",
-      }
     },
     password: {
       type: String,
@@ -31,10 +32,10 @@ const userSchema = new Schema<UserDocument>(
       required: true,
       enum: ["HR", "EMPLOYEE", "ADMIN", "PROJECT_MANAGER"],
     },
-  
-},
+  },
   {
     timestamps: true,
+    versionKey: false,
   }
 );
 
