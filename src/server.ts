@@ -1,5 +1,5 @@
 import app from './app';
-import { config } from 'dotenv';
+import dotenv from "dotenv";
 import { connectDB } from './config/connection';
 import { setupSwagger } from './utils/swagger';
 dotenv.config();
