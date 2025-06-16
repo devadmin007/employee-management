@@ -1,9 +1,20 @@
 import express from 'express';
 import { createManager, deleteManager, getAllManagers, getManagerById, updateManager } from '../controllers/manager.controller';
+import { authMiddleware } from '../middlewares/auth.middleware';
+import { authorization } from '../middlewares/validate.middleware';
 
 
 const managerRouter = express.Router();
 
+/**
+ * @openapi
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
 
 /**
  *  @openapi
@@ -11,6 +22,8 @@ const managerRouter = express.Router();
  *    post:
  *      tags: 
  *        - Manager Controller
+ *      security:
+ *       - bearerAuth: []
  *      summary : Create a Manager
  *      requestBody : 
  *        required : true
@@ -35,13 +48,15 @@ const managerRouter = express.Router();
  */
 
 
-managerRouter.post('/create-manager', createManager);
+managerRouter.post('/create-manager',authMiddleware,authorization ,createManager);
 
 
 /**
  *  @openapi
  *  /api/managers:
  *    get:
+ *      security:
+ *       - bearerAuth: []
  *      tags: 
  *        - Manager Controller
  *      summary : Get all Managers
@@ -51,13 +66,15 @@ managerRouter.post('/create-manager', createManager);
  *        '404' :
  *          description : Not found    
  */
-managerRouter.get('/managers', getAllManagers); 
+managerRouter.get('/managers',authMiddleware,authorization, getAllManagers); 
 
 
 /**
  *  @openapi
  *  /api/manager/{id}:
  *    get:
+ *      security:
+ *       - bearerAuth: []
  *      tags: 
  *        - Manager Controller
  *      summary : Get a Manager by ID
@@ -75,12 +92,14 @@ managerRouter.get('/managers', getAllManagers);
  *        '404' :
  *          description : Not found    
  */
-managerRouter.get('/manager/:id',getManagerById);
+managerRouter.get('/manager/:id',authMiddleware,authorization,getManagerById);
 
 /**
  *  @openapi
  *  /api/update-manager/{id}:
  *    patch:
+ *      security:
+ *       - bearerAuth: []
  *      tags: 
  *        - Manager Controller
  *      summary : Update a Manager by ID
@@ -108,13 +127,15 @@ managerRouter.get('/manager/:id',getManagerById);
  *        '404' :
  *          description : Not found    
  */
-managerRouter.patch('/update-manager/:id',updateManager);
+managerRouter.patch('/update-manager/:id',authMiddleware,authorization,updateManager);
 
 
 /**
  *  @openapi
  *  /api/delete-manager/{id}:
  *    delete:
+ *      security:
+ *       - bearerAuth: []
  *      tags: 
  *        - Manager Controller
  *      summary : Delete a Manager by ID
@@ -130,6 +151,6 @@ managerRouter.patch('/update-manager/:id',updateManager);
  *        '404' :
  *          description : Not found    
  */
-managerRouter.delete('/delete-manager/:id',deleteManager)
+managerRouter.delete('/delete-manager/:id',authMiddleware,authorization,deleteManager)
 
 export default managerRouter;

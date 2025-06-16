@@ -1,3 +1,4 @@
+
 import { Document, model, Schema } from "mongoose";
 
 export interface Manager {
@@ -19,7 +20,9 @@ const managerSchema = new Schema<ManagerDocument>({
     required: true,
    
   },
-});
+},
+{timestamps:true}
+);
 
 
 export const Manager = model<ManagerDocument>("Manager", managerSchema);

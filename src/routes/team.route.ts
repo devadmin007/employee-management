@@ -1,7 +1,19 @@
 import express from 'express';
 import { createTeam, deleteTeam, getAllTeam, getTeamById, updateTeam } from '../controllers/team.controller';
+import { authMiddleware } from '../middlewares/auth.middleware';
+import { authorization } from '../middlewares/validate.middleware';
 
 const teamRouter = express.Router();
+
+/**
+ * @openapi
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
 
 
 
@@ -9,6 +21,8 @@ const teamRouter = express.Router();
  *  @openapi
  *  /api/create-team:
  *    post:
+ *      security:
+ *       - bearerAuth: []
  *      tags: 
  *        - Team Controller
  *      summary : Create a Team
@@ -37,13 +51,15 @@ const teamRouter = express.Router();
 
 
 
-teamRouter.post('/create-team',createTeam);
+teamRouter.post('/create-team',authMiddleware,authorization,createTeam);
 
 
 /**
  *  @openapi
  *  /api/teams:
  *    get:
+ *      security:
+ *        - bearerAuth: []
  *      tags: 
  *        - Team Controller
  *      summary : Get all Teams
@@ -54,12 +70,14 @@ teamRouter.post('/create-team',createTeam);
  *          description : Not found    
  */
 
-teamRouter.get('/teams',getAllTeam);
+teamRouter.get('/teams',authMiddleware,authorization,getAllTeam);
 
 /**
  *  @openapi
  *  /api/team/{id}:
  *    get:
+ *      security:
+ *        - bearerAuth: []
  *      tags: 
  *        - Team Controller
  *      summary : Get a Team by ID
@@ -78,12 +96,14 @@ teamRouter.get('/teams',getAllTeam);
  *          description : Not found    
  */
 
-teamRouter.get('/team/:id',getTeamById);
+teamRouter.get('/team/:id',authMiddleware,authorization,getTeamById);
 
 /**
  *  @openapi
  *  /api/update-team/{id}:
  *    patch:
+ *      security:
+ *        - bearerAuth: []
  *      tags: 
  *        - Team Controller
  *      summary : Update a Team by ID
@@ -113,13 +133,15 @@ teamRouter.get('/team/:id',getTeamById);
  */
 
 
-teamRouter.patch('/update-team/:id',updateTeam);
+teamRouter.patch('/update-team/:id',authMiddleware,authorization,updateTeam);
 
 
 /**
  *  @openapi
  *  /api/delete-team/{id}:
  *    delete:
+ *      security:
+ *        - bearerAuth: []
  *      tags: 
  *        - Team Controller
  *      summary : Delete a Team by ID
@@ -135,6 +157,6 @@ teamRouter.patch('/update-team/:id',updateTeam);
  *        '404' :
  *          description : Not found    
  */
-teamRouter.delete('/delete-team/:id',deleteTeam)
+teamRouter.delete('/delete-team/:id',authMiddleware,authorization,deleteTeam)
 
 export default teamRouter;
