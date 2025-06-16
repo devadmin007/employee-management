@@ -4,8 +4,6 @@ import { connectDB } from './config/connection';
 import { setupSwagger } from './utils/swagger';
 dotenv.config();
 
-import { connectDB } from "./config/connection";
-import { setupSwagger } from "./utils/swagger";
 
 const start = async () => {
   await connectDB();
