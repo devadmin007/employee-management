@@ -4,9 +4,9 @@
   "description": "",
   "main": "server.ts",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "ts-node --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "NODE_ENV=production node dist/server.js",
+    "start": "NODE_ENV=production ts-node src/server.ts",
     "test": "jest"
   },
   "keywords": [],
@@ -22,7 +22,8 @@
     "mongoose": "^8.15.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "zod": "^3.25.60"
+    "zod": "^3.25.60",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
