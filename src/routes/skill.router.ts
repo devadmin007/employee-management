@@ -24,7 +24,7 @@ const skillRouter = express.Router();
  *        - Skill Controller
  *      security:
  *       - bearerAuth: []
- *      summary : Add a Manager
+ *      summary : Add a Skill
  *      requestBody :
  *        required : true
  *        content :
