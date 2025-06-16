@@ -54,8 +54,8 @@ userRouter.post('/register', createUser);
 
 /**
  *  @openapi
- *  /
- * wqapi/login:
+ *  
+ *  /api/login:
  *    post:
  *      tags: 
  *        - User Controller
