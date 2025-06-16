@@ -9,7 +9,7 @@ import { setupSwagger } from "./utils/swagger";
 
 const start = async () => {
   await connectDB();
-
+console.log(process.env.PORT)
   app.listen(process.env.PORT, () => {
     console.log(
       `🚀 Server running on port ${process.env.PORT} in ${process.env.NODE_ENV} mode`
