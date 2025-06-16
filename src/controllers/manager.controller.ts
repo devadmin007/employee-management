@@ -14,30 +14,26 @@ export const createManager = async (req: Request, res: Response) => {
 
     const existingManager = await Manager.findOne({ label });
     if (existingManager) {
-       apiResponse(res, StatusCodes.OK, messages.EXISTING_MANAGER);
+      apiResponse(res, StatusCodes.OK, messages.EXISTING_MANAGER);
     }
 
     const manager = await Manager.create({ label, value });
     if (manager) {
-       apiResponse(res, StatusCodes.CREATED, messages.MANAGER_CREATED, {
+      apiResponse(res, StatusCodes.CREATED, messages.MANAGER_CREATED, {
         label: manager.label,
         value: manager.value,
       });
     }
   } catch (error) {
-     handleError(res, error);
+    handleError(res, error);
   }
 };
 
-export const getAllManagers = async (
-  req: Request,
-  res: Response
-) => {
+export const getAllManagers = async (req: Request, res: Response) => {
   try {
     const managers = await Manager.find();
     if (managers.length === 0) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_NOT_FOUND);
-      
     }
     apiResponse(res, StatusCodes.OK, messages.MANAGER_FOUND, managers);
   } catch (error) {
@@ -85,20 +81,19 @@ export const updateManager = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteManager = async(req:Request,res:Response)=>{
-  try{
+export const deleteManager = async (req: Request, res: Response) => {
+  try {
     const managerId = req.params.id;
     const existingManager = await Manager.findById(managerId);
 
-  if(!existingManager){
-    apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_NOT_FOUND)
+    if (!existingManager) {
+      apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_NOT_FOUND);
+    }
+
+    await Manager.findByIdAndDelete(managerId);
+
+    apiResponse(res, StatusCodes.OK, messages.MANAGER_DELETED);
+  } catch (error) {
+    handleError(res, error);
   }
-
-  await Manager.findByIdAndDelete(managerId);
-
-  apiResponse(res, StatusCodes.OK, messages.MANAGER_DELETED);
-
-  }catch(error){
-    handleError(res,error)
-  }
-}
+};

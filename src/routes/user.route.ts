@@ -1,9 +1,7 @@
-import express from 'express';
-import { createUser, loginUser } from '../controllers/user.controller';
+import express from "express";
+import { createUser, loginUser } from "../controllers/user.controller";
 
-
-const userRouter = express.Router();    
-
+const userRouter = express.Router();
 
 /**
  * @openapi
@@ -15,77 +13,75 @@ const userRouter = express.Router();
  *       bearerFormat: JWT
  */
 
-
 /**
  *  @openapi
  *  /api/register:
  *    post:
- *      tags: 
+ *      tags:
  *        - User Controller
  *      summary : Create an User
- *      requestBody : 
+ *      requestBody :
  *        required : true
  *        content :
  *          application/json:
- *            schema: 
+ *            schema:
  *              type: object
  *              required :
  *                - username
  *                - password
  *                - role
- *              properties : 
- *                username : 
+ *              properties :
+ *                username :
  *                  type : string
  *                password :
  *                  type : string
- *                role : 
+ *                role :
  *                  type : string
- * 
+ *
  *      responses :
  *        '201':
  *          description : Created
- *        '400' : 
+ *        '400' :
  *          descrription : Bad request
  *        '404' :
- *          description : Not found    
+ *          description : Not found
  */
 
-userRouter.post('/register', createUser);
+userRouter.post("/register", createUser);
 
 /**
  *  @openapi
- *  
+ *
  *  /api/login:
  *    post:
- *      tags: 
+ *      tags:
  *        - User Controller
  *      summary : Login an User
- *      requestBody : 
+ *      requestBody :
  *        required : true
  *        content :
  *          application/json:
- *            schema: 
+ *            schema:
  *              type: object
  *              required :
  *                - username
  *                - password
- *               
- *              properties : 
+ *
+ *              properties :
  *                username :
  *                  type : string
- *                password : 
+ *                password :
  *                  type : string
- *               
+ *
  *      responses :
  *        '200':
  *          description : OK
- *        '400' : 
+ *        '400' :
  *          descrription : Bad request
  *        '404' :
- *          description : Not found    
+ *          description : Not found
  */
 
-
-userRouter.post('/login',  loginUser); 
+userRouter.post("/login", loginUser);
 
 export default userRouter;
