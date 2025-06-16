@@ -3,7 +3,7 @@ import { config } from './index';
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect("mongodb+srv://tire-shop:s3W-jGZL4FchR_g@cluster0.ecveq.mongodb.net/Practical");
+    await mongoose.connect("mongodb+srv://admin:admin@123@cluster0.o4pzn.mongodb.net/employee-management");
     console.log(`MongoDB connected to ${config.mongoUri}`);
   } catch (error) {
     console.error('MongoDB connection error:', error);
