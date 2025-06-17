@@ -5,6 +5,7 @@ import { handleError } from "../utils/errHandler";
 import { StatusCodes } from "http-status-codes";
 import { Skill } from "../models/skill.model";
 import { messages } from "../utils/messages";
+import { commonPagination } from "../utils/pagination";
 
 export const addSkill = async (req: Request, res: Response) => {
   try {
@@ -32,9 +33,12 @@ export const addSkill = async (req: Request, res: Response) => {
 
 export const getAllSkill = async (req: Request, res: Response) => {
   try {
-    const skill = await Skill.find();
+
+    const { skill, totalCount, totalPages ,currentPage} = await commonPagination(req, Skill);
+
     if (skill) {
-      apiResponse(res, StatusCodes.OK, messages.SKILLS_FOUND, skill);
+      apiResponse(res, StatusCodes.OK, messages.SKILLS_FOUND, { skill, totalCount, totalPages, currentPage });
+      return;
     }
     apiResponse(res, StatusCodes.NOT_FOUND, messages.SKILLS_NOT_FOUND);
   } catch (error) {

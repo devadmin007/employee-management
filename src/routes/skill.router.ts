@@ -58,8 +58,26 @@ skillRouter.post("/add-skill",authMiddleware,authorization,addSkill);
  *      security:
  *       - bearerAuth: []
  *      tags:
- *        - Skill Controller
- *      summary : Get all Skills
+ *        - Skill Controller     
+ *      summary: Get all Skills with optional pagination and search
+ *      parameters:
+ *        - in: query
+ *          name: page
+ *          schema:
+ *            type: integer
+ *            default: 1
+ *          description: Page number for pagination
+ *        - in: query
+ *          name: limit
+ *          schema:
+ *            type: integer
+ *            default: 10
+ *          description: Number of skills per page
+ *        - in: query
+ *          name: search
+ *          schema:
+ *            type: string
+ *          description: Search term to filter skills by label (case-insensitive)
  *      responses :
  *        '200':
  *          description : OK
