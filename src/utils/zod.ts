@@ -40,6 +40,7 @@ export const managerZodSchema = z.object({
 export const updateManagerSchema = managerZodSchema;
 
 export const teamZodSchema = z.object({
+  managerId: z.string().min(1, "managerId is required"),
   label: z
     .string()
     .min(1, "Team name is required")

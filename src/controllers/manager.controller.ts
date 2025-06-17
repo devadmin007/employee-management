@@ -14,7 +14,7 @@ export const createManager = async (req: Request, res: Response) => {
 
     const existingManager = await Manager.findOne({ label });
     if (existingManager) {
-      apiResponse(res, StatusCodes.OK, messages.EXISTING_MANAGER);
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.EXISTING_MANAGER);
     }
 
     const manager = await Manager.create({ label, value });
@@ -48,7 +48,7 @@ export const getManagerById = async (req: Request, res: Response) => {
     if (!manager) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_NOT_FOUND);
     }
-    apiResponse(res, StatusCodes.OK, messages.MANAGER_FOUND, manager);
+    apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_FOUND, manager);
   } catch (error) {
     handleError(res, error);
   }

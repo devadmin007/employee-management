@@ -16,7 +16,7 @@ export const addSkill = async (req: Request, res: Response) => {
     const existingSkill = await Skill.findOne({ label });
 
     if (existingSkill) {
-      apiResponse(res, StatusCodes.OK, messages.EXISTING_SKILL);
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.EXISTING_SKILL);
     }
 
     const skill = await Skill.create({ label, value });

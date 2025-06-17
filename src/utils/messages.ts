@@ -14,6 +14,7 @@ export const messages = {
   MANAGER_CREATED: "Manager has been created successfully",
   EXISTING_MANAGER: "Manager already exists",
   MANAGER_NOT_FOUND: "Manager is not fetched",
+  MANAGER_ID_NOT_FOUND: "Manager id is not found",
   MANAGER_FOUND: "Manager fetched successfully",
   MANAGER_UPDATED: "Manager has been updated successfully",
   MANAGER_NOT_UPDATED: "Manager has not been updated",

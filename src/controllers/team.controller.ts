@@ -9,19 +9,24 @@ import { messages } from "../utils/messages";
 export const createTeam = async (req: Request, res: Response) => {
   try {
     const parseData = teamZodSchema.parse(req.body);
+    const{managerId} = parseData;
+    if(!managerId){
+      apiResponse(res,StatusCodes.OK,messages.MANAGER_ID_NOT_FOUND)
+    }
     const label = parseData.label;
     const value = label.toLocaleLowerCase().replace(/\s+/g, "_");
 
     const existingTeam = await Team.findOne({ label });
 
     if (existingTeam) {
-      apiResponse(res, StatusCodes.OK, messages.EXISTING_TEAM);
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.EXISTING_TEAM);
     }
 
-    const team = await Team.create({ label, value });
+    const team = await Team.create({ managerId,label, value });
 
     if (team) {
       apiResponse(res, StatusCodes.CREATED, messages.TEAM_CREATED, {
+        managerId:managerId,
         label: team.label,
         value: team.value,
       });

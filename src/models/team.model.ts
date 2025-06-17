@@ -1,6 +1,7 @@
-import { Document, Schema, model } from "mongoose";
+import { Document, Schema, model, Types } from "mongoose";
 
 export interface Team {
+  managerId: Types.ObjectId;
   label: String;
   value: string;
 }
@@ -9,6 +10,11 @@ export interface TeamDocument extends Team, Document {}
 
 const teamSchema = new Schema<TeamDocument>(
   {
+    managerId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "Manager",
+    },
     label: {
       type: String,
       required: true,
