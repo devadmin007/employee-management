@@ -23,6 +23,7 @@ export const createManager = async (req: Request, res: Response) => {
         label: manager.label,
         value: manager.value,
       });
+
     }
   } catch (error) {
     handleError(res, error);
@@ -33,11 +34,11 @@ export const getAllManagers = async (req: Request, res: Response) => {
   try {
     const managers = await Manager.find();
     if (managers.length === 0) {
-      apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_NOT_FOUND);
+      apiResponse(res, StatusCodes.OK, messages.MANAGER_NOT_FOUND,[]);
     }
     apiResponse(res, StatusCodes.OK, messages.MANAGER_FOUND, managers);
   } catch (error) {
-    handleError(res, error);
+    handleError(res, error);  
   }
 };
 
@@ -48,7 +49,7 @@ export const getManagerById = async (req: Request, res: Response) => {
     if (!manager) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_NOT_FOUND);
     }
-    apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_FOUND, manager);
+    apiResponse(res, StatusCodes.OK, messages.MANAGER_FOUND, manager);
   } catch (error) {
     handleError(res, error);
   }

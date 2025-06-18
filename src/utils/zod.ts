@@ -63,3 +63,15 @@ export const skillZodSchema = z.object({
 });
 
 export const updateSkillSchema = skillZodSchema;
+
+export const createHolidaySchema = z.object({
+  label: z.string().min(1, "Holiday is required")
+})
+
+export const updateHolidaySchema = createHolidaySchema
+
+export const createDesignationSchema = z.object({
+  label: z.string().min(1, "Holiday is required")
+})
+
+export const updateDesignationSchema = createDesignationSchema

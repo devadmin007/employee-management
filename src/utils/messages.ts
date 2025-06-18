@@ -15,7 +15,7 @@ export const messages = {
   EXISTING_MANAGER: "Manager already exists",
   EXISTING_MANAGER_WITH_TEAM:
     "Manager already exist with other team ,try with new managerId",
-  MANAGER_NOT_FOUND: "Manager is not fetched",
+  MANAGER_NOT_FOUND: "Manager not found",
   MANAGER_ID_NOT_FOUND: "Manager id is not found",
   MANAGER_FOUND: "Manager fetched successfully",
   MANAGER_UPDATED: "Manager has been updated successfully",
@@ -44,4 +44,24 @@ export const messages = {
   SKILL_UPDATED: "Skill has been updated successfully",
   SKILL_NOT_UPDATED: "Skill has not been updated",
   SKILL_DELETED: "Skill has been deleted successfully",
+
+  //HOLIDAY MESSAGES
+  HOLIDAY_CREATED: "Holiday has been created successfully",
+  HOLIDAY_TEAM: "Team is already exists",
+  HOLIDAY_NOT_FOUND: "Holiday not found",
+  HOLIDAY_EXIST : "Holiday already exist",
+  HOLIDAY_FOUND: "Holiday found successfully",
+  HOLIDAY_UPDATED: "Holiday has been updated successfully",
+  HOLIDAY_NOT_UPDATED: "Holiday has not been updated",
+  HOLIDAY_DELETED: "Holiday has been deleted successfully",
+
+
+   DESIGNATION_CREATED: "Designation has been created successfully",
+  DESIGNATION_TEAM: "Team is already exists",
+  DESIGNATION_NOT_FOUND: "Designation  not found",
+  DESIGNATION_EXIST : "Designation  already exist",
+  DESIGNATION_FOUND: "Designation  found successfully",
+  DESIGNATION_UPDATED: "Designation  has been updated successfully",
+  DESIGNATION_NOT_UPDATED: "Designation  has not been updated",
+  DESIGNATION_DELETED: "Designation  has been deleted successfully",
 };
