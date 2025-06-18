@@ -54,4 +54,14 @@ export const messages = {
   HOLIDAY_UPDATED: "Holiday has been updated successfully",
   HOLIDAY_NOT_UPDATED: "Holiday has not been updated",
   HOLIDAY_DELETED: "Holiday has been deleted successfully",
+
+
+   DESIGNATION_CREATED: "Designation has been created successfully",
+  DESIGNATION_TEAM: "Team is already exists",
+  DESIGNATION_NOT_FOUND: "Designation  not found",
+  DESIGNATION_EXIST : "Designation  already exist",
+  DESIGNATION_FOUND: "Designation  found successfully",
+  DESIGNATION_UPDATED: "Designation  has been updated successfully",
+  DESIGNATION_NOT_UPDATED: "Designation  has not been updated",
+  DESIGNATION_DELETED: "Designation  has been deleted successfully",
 };

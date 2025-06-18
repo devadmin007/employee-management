@@ -69,3 +69,9 @@ export const createHolidaySchema = z.object({
 })
 
 export const updateHolidaySchema = createHolidaySchema
+
+export const createDesignationSchema = z.object({
+  label: z.string().min(1, "Holiday is required")
+})
+
+export const updateDesignationSchema = createDesignationSchema

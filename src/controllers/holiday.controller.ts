@@ -65,7 +65,7 @@ export const getHoliday = async (req: Request, res: Response) => {
     apiResponse(res, StatusCodes.OK, messages.HOLIDAY_FOUND, {
       holiday: holiday,
     });
-    apiResponse(res, StatusCodes.OK, messages.HOLIDAY_FOUND);
+
   } catch (error) {
     handleError(res, error);
   }
