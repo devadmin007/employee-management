@@ -11,6 +11,6 @@ app.use(express.json());
 app.use("/api", userRouter);
 app.use("/api", managerRouter);
 app.use("/api", teamRouter);
-app.use("/api",skillRouter)
+app.use("/api", skillRouter);
 
 export default app;

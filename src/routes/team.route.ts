@@ -38,10 +38,13 @@ const teamRouter = express.Router();
  *              type: object
  *              required :
  *                - label
+ *                - managerId
  *              properties :
  *                label :
  *                  type : string
- *
+ *                managerId :
+ *                  type : string
+ *                  description: ID of the team manager
  *
  *      responses :
  *        '201':
