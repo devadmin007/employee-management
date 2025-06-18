@@ -74,7 +74,7 @@ export const updateTeam = async (req: Request, res: Response) => {
 
     const existingTeam = await Team.findById(teamId);
     if (!existingTeam) {
-      apiResponse(res, StatusCodes.OK, messages.TEAM_NOT_FOUND);
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.TEAM_NOT_FOUND);
     }
 
     const label = parseData.label;

@@ -39,7 +39,7 @@ export const getAlldesignations = async (req: Request, res: Response) => {
     if (designation.length === 0) {
       return apiResponse(
         res,
-        StatusCodes.NOT_FOUND,
+        StatusCodes.BAD_REQUEST,
         messages.DESIGNATION_NOT_FOUND
       );
     }
@@ -61,7 +61,7 @@ export const getdesignation = async (req: Request, res: Response) => {
     if (!designation) {
       return apiResponse(
         res,
-        StatusCodes.NOT_FOUND,
+        StatusCodes.BAD_REQUEST,
         messages.DESIGNATION_NOT_FOUND
       );
     }

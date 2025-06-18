@@ -35,7 +35,7 @@ export const getAllHolidays = async (req: Request, res: Response) => {
     if (holiday.length === 0) {
       return apiResponse(
         res,
-        StatusCodes.NOT_FOUND,
+        StatusCodes.BAD_REQUEST,
         messages.HOLIDAY_NOT_FOUND
       );
     }
@@ -57,7 +57,7 @@ export const getHoliday = async (req: Request, res: Response) => {
     if (!holiday) {
       return apiResponse(
         res,
-        StatusCodes.NOT_FOUND,
+        StatusCodes.BAD_REQUEST,
         messages.HOLIDAY_NOT_FOUND
       );
     }
@@ -90,7 +90,7 @@ export const updateHolidayById = async (req: Request, res: Response) => {
       { new: true }
     );
     if (!updateHoliday) {
-      apiResponse(res, StatusCodes.OK, messages.HOLIDAY_NOT_UPDATED);
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.HOLIDAY_NOT_UPDATED);
     }
     apiResponse(res, StatusCodes.OK, messages.HOLIDAY_UPDATED);
   } catch (error) {
