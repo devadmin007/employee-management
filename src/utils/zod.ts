@@ -40,6 +40,7 @@ export const managerZodSchema = z.object({
 export const updateManagerSchema = managerZodSchema;
 
 export const teamZodSchema = z.object({
+  managerId: z.string().min(1, "managerId is required"),
   label: z
     .string()
     .min(1, "Team name is required")
@@ -50,3 +51,15 @@ export const teamZodSchema = z.object({
 });
 
 export const updateTeamSchema = teamZodSchema;
+
+export const skillZodSchema = z.object({
+  label: z
+    .string()
+    .min(1, "Team name is required")
+    .transform((value) => value.trim())
+    .refine((value) => /^[^\d]+$/.test(value), {
+      message: "Team name must not contain digits",
+    }),
+});
+
+export const updateSkillSchema = skillZodSchema;

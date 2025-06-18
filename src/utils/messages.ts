@@ -1,5 +1,5 @@
 export const messages = {
-  //User messages
+  //USER MESSAGES
   USER_REGISTERED: "User has been registerd successfully",
   USER_LOGIN_SUCCESS: "User has been logged in successfully",
   USER_ERR: "Failed to create user unknown reason",
@@ -14,6 +14,7 @@ export const messages = {
   MANAGER_CREATED: "Manager has been created successfully",
   EXISTING_MANAGER: "Manager already exists",
   MANAGER_NOT_FOUND: "Manager is not fetched",
+  MANAGER_ID_NOT_FOUND: "Manager id is not found",
   MANAGER_FOUND: "Manager fetched successfully",
   MANAGER_UPDATED: "Manager has been updated successfully",
   MANAGER_NOT_UPDATED: "Manager has not been updated",
@@ -29,4 +30,16 @@ export const messages = {
   TEAM_UPDATED: "Team has been updated successfully",
   TEAM_NOT_UPDATED: "Team has not been updated",
   TEAM_DELETED: "Team has been deleted successfully",
+
+  //SKILL MESSAGES
+
+  SKILL_ADDED: "Skil has been added succesfully",
+  EXISTING_SKILL: "Skill is already added",
+  SKILL_NOT_FOUND: "Skill is not fetched",
+  SKILLS_NOT_FOUND: "Skills are not fetched",
+  SKILL_FOUND: "Skill is fetched successfully",
+  SKILLS_FOUND: "Skills are fetched successfully",
+  SKILL_UPDATED: "Skill has been updated successfully",
+  SKILL_NOT_UPDATED: "Skill has not been updated",
+  SKILL_DELETED: "Skill has been deleted successfully",
 };
