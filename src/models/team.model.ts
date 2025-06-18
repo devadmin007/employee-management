@@ -14,6 +14,7 @@ const teamSchema = new Schema<TeamDocument>(
       type: Schema.Types.ObjectId,
       required: true,
       ref: "Manager",
+      unique:true
     },
     label: {
       type: String,

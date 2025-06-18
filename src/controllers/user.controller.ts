@@ -63,7 +63,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       { expiresIn: "7d" }
     );
 
-    apiResponse(res, StatusCodes.OK, messages.USER_LOGIN_SUCCESS, accessToken);
+    apiResponse(res, StatusCodes.OK, messages.USER_LOGIN_SUCCESS, {token:accessToken});
   } catch (error) {
     handleError(res, error);
   }

@@ -13,6 +13,11 @@ export const createTeam = async (req: Request, res: Response) => {
     if (!managerId) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_ID_NOT_FOUND);
     }
+
+    const existingManager = await Team.findById(managerId);
+    if(existingManager){
+      apiResponse(res,StatusCodes.BAD_REQUEST,messages.EXISTING_MANAGER_WITH_TEAM)
+    }
     const label = parseData.label;
     const value = label.toLocaleLowerCase().replace(/\s+/g, "_");
 

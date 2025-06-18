@@ -13,6 +13,8 @@ export const messages = {
   //MANAGER MESSAGES
   MANAGER_CREATED: "Manager has been created successfully",
   EXISTING_MANAGER: "Manager already exists",
+  EXISTING_MANAGER_WITH_TEAM:
+    "Manager already exist with other team ,try with new managerId",
   MANAGER_NOT_FOUND: "Manager is not fetched",
   MANAGER_ID_NOT_FOUND: "Manager id is not found",
   MANAGER_FOUND: "Manager fetched successfully",
