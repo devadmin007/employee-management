@@ -44,4 +44,14 @@ export const messages = {
   SKILL_UPDATED: "Skill has been updated successfully",
   SKILL_NOT_UPDATED: "Skill has not been updated",
   SKILL_DELETED: "Skill has been deleted successfully",
+
+  //HOLIDAY MESSAGES
+  HOLIDAY_CREATED: "Holiday has been created successfully",
+  HOLIDAY_TEAM: "Team is already exists",
+  HOLIDAY_NOT_FOUND: "Holiday not found",
+  HOLIDAY_EXIST : "Holiday already exist",
+  HOLIDAY_FOUND: "Holiday found successfully",
+  HOLIDAY_UPDATED: "Holiday has been updated successfully",
+  HOLIDAY_NOT_UPDATED: "Holiday has not been updated",
+  HOLIDAY_DELETED: "Holiday has been deleted successfully",
 };

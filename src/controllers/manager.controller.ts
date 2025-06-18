@@ -23,6 +23,7 @@ export const createManager = async (req: Request, res: Response) => {
         label: manager.label,
         value: manager.value,
       });
+      
     }
   } catch (error) {
     handleError(res, error);
