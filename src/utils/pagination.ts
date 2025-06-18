@@ -6,6 +6,8 @@ export const commonPagination = async (req: Request, modelName: any) => {
     const limit = Number(req.query.limit as string) || 10;
     const { search } = req.query as { search?: string };
     const skip = (page - 1) * limit;
+
+    
     const query: any = {};
 
     if (search) {
