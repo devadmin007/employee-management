@@ -1,9 +1,8 @@
-import app from './app';
+import app from "./app";
 import dotenv from "dotenv";
-import { connectDB } from './config/connection';
-import { setupSwagger } from './utils/swagger';
+import { connectDB } from "./config/connection";
+import { setupSwagger } from "./utils/swagger";
 dotenv.config();
-
 
 const start = async () => {
   await connectDB();
