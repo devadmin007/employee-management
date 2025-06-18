@@ -59,7 +59,7 @@ export const getTeamById = async (req: Request, res: Response) => {
 
     const team = await Team.findById(teamId);
     if (!team) {
-      apiResponse(res, StatusCodes.OK, messages.TEAM_NOT_FOUND);
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.TEAM_NOT_FOUND);
     }
     apiResponse(res, StatusCodes.OK, messages.TEAM_FOUND, team);
   } catch (error) {
@@ -101,7 +101,7 @@ export const deleteTeam = async (req: Request, res: Response) => {
     const existingTeam = await Team.findById(teamId);
 
     if (!existingTeam) {
-      apiResponse(res, StatusCodes.OK, messages.TEAM_NOT_FOUND);
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.TEAM_NOT_FOUND);
     }
 
     await Team.findByIdAndDelete(teamId);
