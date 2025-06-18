@@ -23,7 +23,7 @@ export const createManager = async (req: Request, res: Response) => {
         label: manager.label,
         value: manager.value,
       });
-      
+
     }
   } catch (error) {
     handleError(res, error);
@@ -49,7 +49,7 @@ export const getManagerById = async (req: Request, res: Response) => {
     if (!manager) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_NOT_FOUND);
     }
-    apiResponse(res, StatusCodes.NOT_FOUND, messages.MANAGER_FOUND, manager);
+    apiResponse(res, StatusCodes.OK, messages.MANAGER_FOUND, manager);
   } catch (error) {
     handleError(res, error);
   }
