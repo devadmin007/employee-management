@@ -35,8 +35,8 @@ export const getAllHolidays = async (req: Request, res: Response) => {
     if (holiday.length === 0) {
       return apiResponse(
         res,
-        StatusCodes.BAD_REQUEST,
-        messages.HOLIDAY_NOT_FOUND
+        StatusCodes.OK,
+        messages.HOLIDAY_FOUND
       );
     }
 

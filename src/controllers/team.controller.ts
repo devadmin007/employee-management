@@ -45,7 +45,7 @@ export const getAllTeam = async (req: Request, res: Response) => {
   try {
     const teams = await Team.find();
     if (teams.length === 0) {
-      apiResponse(res, StatusCodes.NOT_FOUND, messages.TEAM_NOT_FOUND);
+      apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND,[]);
     }
     apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND, teams);
   } catch (error) {
