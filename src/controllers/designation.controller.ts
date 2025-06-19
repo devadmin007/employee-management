@@ -39,8 +39,9 @@ export const getAlldesignations = async (req: Request, res: Response) => {
     if (designation.length === 0) {
       return apiResponse(
         res,
-        StatusCodes.BAD_REQUEST,
-        messages.DESIGNATION_NOT_FOUND
+        StatusCodes.OK,
+        messages.DESIGNATION_FOUND,
+        []
       );
     }
 
