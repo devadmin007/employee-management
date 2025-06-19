@@ -5,6 +5,7 @@ export interface User {
   password: string;
   role: string;
   email: string;
+  personalEmail :string,
   firstName: string;
   lastName: string;
   fullName: string;
@@ -33,6 +34,11 @@ const userSchema = new Schema<UserDocument>(
     email: {
       type: String,
       unique: true,
+      lowercase: true,
+    },
+       personalEmail: {
+      type: String,
+    
       lowercase: true,
     },
     firstName : {

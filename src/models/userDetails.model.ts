@@ -1,23 +1,34 @@
 import { Document, Types, Schema, model } from "mongoose";
 
+export interface Address {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  zip: string;
+}
+
+export interface BankDetails {
+  accountNumber: string;
+  ifscCode: string;
+  branchName: string;
+}
+
 export interface UserDetails {
   userId: Types.ObjectId;
+  managerId: Types.ObjectId;
   employeeId: string;
   countryCode: string;
   phoneNumber: string;
   dateOfBirth: Date;
   gender: string;
-  address: {
-    address: string;
-    zipCode: string;
-  };
-  country: string;
-  state: string;
-  city: string;
+  permenentAddress: Address;
+  currentAddress: Address;
   joiningDate: Date;
   probationDate: Date;
   panNo: string;
   aadharNo: string;
+  personalNumber: string;
   currentSalary: string;
   previousExperience: string;
   pfNo: string;
@@ -28,13 +39,11 @@ export interface UserDetails {
   teamId: Types.ObjectId;
   designationId: Types.ObjectId;
   department: string;
-  skill: Types.ObjectId;
-  bankDetails: {
-    accountNumber: string;
-    ifscCode: string;
-    branchName: string;
-  };
+  primarySkills: Types.ObjectId;
+  secondarySkills: Types.ObjectId;
+  bankDetails: BankDetails;
   isDeleted: boolean;
+  relieivingDate: Date;
 }
 
 export interface UserDetailsDocument extends UserDetails, Document {}
@@ -45,120 +54,113 @@ const userDetailSchema = new Schema<UserDetailsDocument>(
       type: Schema.Types.ObjectId,
       required: true,
       ref: "User",
-      unique: true,
+    },
+    managerId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
     },
     employeeId: {
       type: String,
       required: true,
+      unique: true,
     },
     countryCode: {
       type: String,
-      required: true,
     },
     phoneNumber: {
       type: String,
-      required: true,
     },
+
+    personalNumber: {
+      type: String,
+    },
+
     dateOfBirth: {
       type: Date,
-      required: true,
     },
     gender: {
       type: String,
-      required: true,
     },
-    address: {
-      address: { type: String, required: true },
-      zipCode: {
-        type: String,
-        required: true,
-      },
+   
+    permenentAddress: {
+      street: { type: String },
+      city: { type: String },
+      state: { type: String },
+      country: { type: String },
+      zip: { type: String },
     },
-    country: {
-      type: String,
-      required: true,
+    currentAddress: {
+      street: { type: String },
+      city: { type: String },
+      state: { type: String },
+      country: { type: String },
+      zip: { type: String },
     },
     joiningDate: {
       type: Date,
-      required: true,
     },
     probationDate: {
       type: Date,
-      required: true,
     },
     panNo: {
       type: String,
-      required: true,
     },
     aadharNo: {
       type: String,
-      required: true,
     },
-
     currentSalary: {
       type: String,
-      required: true,
     },
     previousExperience: {
       type: String,
-      required: true,
     },
     pfNo: {
       type: String,
-      required: true,
     },
-
     uanDetail: {
       type: String,
-      required: true,
     },
     esicNo: {
       type: String,
-      required: true,
     },
     esicStart: {
       type: Date,
-      required: true,
     },
-
     esicEnd: {
       type: Date,
-      required: true,
     },
     teamId: {
       type: Schema.Types.ObjectId,
-      required: true,
       ref: "Team",
     },
     designationId: {
       type: Schema.Types.ObjectId,
-      required: true,
       ref: "Designation",
     },
     department: {
       type: String,
-      required: true,
     },
-    skill: {
+    relieivingDate: {
+      type: Date,
+    },
+    primarySkills: {
       type: Schema.Types.ObjectId,
-      required: true,
+      ref: "Skill",
+    },
+    secondarySkills: {
+      type: Schema.Types.ObjectId,
       ref: "Skill",
     },
     bankDetails: {
-      accountNumber: {
-        type: String,
-        required: true,
-      },
-      ifscCode: {
-        type: String,
-        required: true,
-      },
-      branchName: {
-        type: String,
-        required: true,
-      },
+      accountNumber: { type: String },
+      ifscCode: { type: String },
+      branchName: { type: String },
     },
-    isDeleted: { type: Boolean, default: false },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -166,4 +168,7 @@ const userDetailSchema = new Schema<UserDetailsDocument>(
   }
 );
 
-export const UserDetails = model<UserDetailsDocument>("User", userDetailSchema);
+export const UserDetails = model<UserDetailsDocument>(
+  "UserDetails",
+  userDetailSchema
+);

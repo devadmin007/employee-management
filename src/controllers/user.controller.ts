@@ -1,5 +1,11 @@
 import { User } from "../models/user.model";
-import { registerSchema, loginSchema } from "../utils/zod";
+import {
+  registerSchema,
+  loginSchema,
+  createUserSchema,
+  userDetailsSchema,
+  updateUserSchema,
+} from "../utils/zod";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -8,6 +14,25 @@ import { messages } from "../utils/messages";
 import { handleError } from "../utils/errHandler";
 import { StatusCodes } from "http-status-codes";
 import { Console } from "console";
+import { UserDetails } from "../models/userDetails.model";
+import { Types } from "mongoose";
+
+const generateEmployeeId = async () => {
+  const lastUser = await UserDetails.findOne().sort({ createdAt: -1 });
+  const lastNumber = lastUser?.employeeId?.match(/\d+/)?.[0] || "0";
+  const newNumber = String(Number(lastNumber) + 1).padStart(3, "0");
+  return `EMP${newNumber}`;
+};
+
+// Utility to generate a strong password
+const generatePassword = () => {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
+  return Array.from(
+    { length: 10 },
+    () => chars[Math.floor(Math.random() * chars.length)]
+  ).join("");
+};
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -57,6 +82,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
 
     const accessToken = jwt.sign(
+
       {
         username: user.username,
         role: user.role,
@@ -67,6 +93,125 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     apiResponse(res, StatusCodes.OK, messages.USER_LOGIN_SUCCESS, {
       token: accessToken,
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+export const userCreate = async (req: Request, res: Response) => {
+  try {
+    const { firstName, lastName } = req.body;
+    const userData = await createUserSchema.parseAsync(req.body);
+
+    const rawPassword = generatePassword();
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+    const employeeId = await generateEmployeeId();
+
+    const user = new User({
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      role: userData.role,
+      password: hashedPassword,
+      username: `${firstName.toLowerCase()}_${lastName.toLowerCase()}`,
+    });
+
+    const saveUser = await user.save();
+
+    req.body.employeeId = employeeId;
+    const userDetail = await userDetailsSchema.parseAsync(req.body);
+
+    const finalData = {
+      userId: saveUser._id,
+      ...userDetail,
+    };
+
+    const createUserDetail = await UserDetails.create(finalData);
+
+    apiResponse(res, StatusCodes.CREATED, "User created successfully", {
+      userId: saveUser._id,
+      username: saveUser.username,
+      role: saveUser.role,
+      employeeId: createUserDetail.employeeId,
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+
+export const getUserId = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+
+    const userWithDetails = await User.aggregate([
+      {
+        $match: {
+          _id: new Types.ObjectId(userId),
+          isActive:true,
+          isDeleted:false
+        },
+      },
+      {
+        $lookup: {
+          from: "userdetails", // 👈 collection name (lowercase & plural by default)
+          localField: "_id",
+          foreignField: "userId",
+          as: "userDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$userDetails",
+          preserveNullAndEmptyArrays: true, // in case no details exist
+        },
+      },
+      {
+        $project: {
+          password: 0, // 👈 hide sensitive fields
+          __v: 0,
+          "userDetails._id": 0,
+          "userDetails.__v": 0,
+        },
+      },
+    ]);
+
+    if (!userWithDetails || userWithDetails.length === 0) {
+      return apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
+    }
+
+    return apiResponse(res, StatusCodes.OK, "User fetched successfully", userWithDetails[0]);
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+export const updateUserDetaisById = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const updateData = req.body;
+
+ 
+    const existingUser = await User.findById(userId);
+    if (!existingUser) {
+      return apiResponse(res, StatusCodes.BAD_REQUEST, messages.USER_NOT_FOUND);
+    }
+
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    });
+
+    const updatedUserDetail = await UserDetails.findOneAndUpdate(
+      { userId:userId },
+      updateData,
+      { new: true }
+    );
+
+    return apiResponse(res, StatusCodes.OK, messages.USER_UPDATED, {
+      user: updatedUser,
+      userDetails: updatedUserDetail,
     });
   } catch (error) {
     handleError(res, error);
