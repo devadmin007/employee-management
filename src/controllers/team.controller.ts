@@ -15,8 +15,12 @@ export const createTeam = async (req: Request, res: Response) => {
     }
 
     const existingManager = await Team.findById(managerId);
-    if(existingManager){
-      apiResponse(res,StatusCodes.BAD_REQUEST,messages.EXISTING_MANAGER_WITH_TEAM)
+    if (existingManager) {
+      apiResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        messages.EXISTING_MANAGER_WITH_TEAM
+      );
     }
     const label = parseData.label;
     const value = label.toLocaleLowerCase().replace(/\s+/g, "_");
@@ -45,7 +49,7 @@ export const getAllTeam = async (req: Request, res: Response) => {
   try {
     const teams = await Team.find();
     if (teams.length === 0) {
-      apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND,[]);
+      apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND, []);
     }
     apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND, teams);
   } catch (error) {
@@ -57,7 +61,7 @@ export const getTeamById = async (req: Request, res: Response) => {
   try {
     const teamId = req.params.id;
 
-    const team = await Team.findById(teamId);
+    const team = await Team.findById(teamId).populate("managerId",'firstName lastName');
     if (!team) {
       apiResponse(res, StatusCodes.BAD_REQUEST, messages.TEAM_NOT_FOUND);
     }
