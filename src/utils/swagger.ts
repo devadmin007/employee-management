@@ -14,6 +14,9 @@ const options = {
       {
         url: "http://localhost:5000",
       },
+      {
+        url: "https://employee-management-a8yl.onrender.com",
+      },
     ],
   },
   apis: ["./src/**/*.ts"],

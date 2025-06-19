@@ -11,6 +11,6 @@ export const apiResponse = async <T>(
   res.status(code).json({
     status,
     message,
-    data: data ?? null,
+    data: data ?? [],
   });
 };
