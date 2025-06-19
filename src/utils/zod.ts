@@ -8,6 +8,8 @@ export const registerSchema = z.object({
       message:
         "Username must contain only alphanumeric characters, underscores, or hyphens",
     }),
+    firstName : z.string().min(1,"Firstname is required"),
+    lastName : z.string().min(1,"Last name is required"),
   password: z.string().min(1, "Password Must be required"),
   role: z.enum(["HR", "EMPLOYEE", "ADMIN", "PROJECT_MANAGER"], {
     errorMap: () => ({

@@ -7,6 +7,7 @@ import { apiResponse } from "../utils/apiResponses";
 import { messages } from "../utils/messages";
 import { handleError } from "../utils/errHandler";
 import { StatusCodes } from "http-status-codes";
+import { Console } from "console";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -26,11 +27,12 @@ export const createUser = async (req: Request, res: Response) => {
     };
 
     const user = await User.create(finalData);
-
     if (user) {
       apiResponse(res, StatusCodes.CREATED, messages.USER_REGISTERED, {
         username: user.username,
         role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
       });
     }
   } catch (error) {

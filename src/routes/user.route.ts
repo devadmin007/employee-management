@@ -28,11 +28,17 @@ const userRouter = express.Router();
  *              type: object
  *              required :
  *                - username
+ *                - firstName
+ *                - lastName
  *                - password
  *                - role
  *              properties :
  *                username :
  *                  type : string
+ *                firstName : 
+ *                  type : string
+ *                lastName :
+ *                  type: string
  *                password :
  *                  type : string
  *                role :

@@ -10,6 +10,7 @@ export interface User {
   fullName: string;
   isActive:boolean
   isDeleted:boolean
+  employeeId:string
 }
 
 export interface UserDocument extends User, Document {}
@@ -40,12 +41,13 @@ const userSchema = new Schema<UserDocument>(
     lastName: {
       type: String,
     },
-    fullName :{
-      type: String,
-    },
+
     password: {
       type: String,
       required: true,
+    },
+      employeeId: {
+      type: String,
     },
     role: {
       type: String,
