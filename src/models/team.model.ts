@@ -13,7 +13,7 @@ const teamSchema = new Schema<TeamDocument>(
     managerId: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: "Manager",
+      ref: "User",
       unique:true
     },
     label: {

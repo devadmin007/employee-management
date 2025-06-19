@@ -4,6 +4,12 @@ export interface User {
   username: string;
   password: string;
   role: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  isActive:boolean
+  isDeleted:boolean
 }
 
 export interface UserDocument extends User, Document {}
@@ -23,6 +29,20 @@ const userSchema = new Schema<UserDocument>(
           "Username must contain only alphanumeric characters, hyphens, or underscores.",
       },
     },
+    email: {
+      type: String,
+      unique: true,
+      lowercase: true,
+    },
+    firstName : {
+      type: String,
+    },
+    lastName: {
+      type: String,
+    },
+    fullName :{
+      type: String,
+    },
     password: {
       type: String,
       required: true,
@@ -32,7 +52,10 @@ const userSchema = new Schema<UserDocument>(
       required: true,
       enum: ["HR", "EMPLOYEE", "ADMIN", "PROJECT_MANAGER"],
     },
+      isActive: { type: Boolean, default: true },
+      isDeleted: { type: Boolean, default: false },
   },
+
   {
     timestamps: true,
     versionKey: false,
