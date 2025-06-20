@@ -47,7 +47,7 @@ export const createTeam = async (req: Request, res: Response) => {
 
 export const getAllTeam = async (req: Request, res: Response) => {
   try {
-    const teams = await Team.find();
+    const teams = await Team.find().populate("managerId",'firstName lastName');
     if (teams.length === 0) {
       apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND, []);
     }
