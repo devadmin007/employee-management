@@ -1,11 +1,11 @@
 import express from "express";
-import { createUser, loginUser } from "../controllers/user.controller";
+import { createUser, getUserId, loginUser, userCreate,updateUserDetaisById } from "../controllers/user.controller";
 
 const userRouter = express.Router();
 
 /**
  * @openapi
- * components:
+ * components:  
  *   securitySchemes:
  *     bearerAuth:
  *       type: http
@@ -28,11 +28,17 @@ const userRouter = express.Router();
  *              type: object
  *              required :
  *                - username
+ *                - firstName
+ *                - lastName
  *                - password
  *                - role
  *              properties :
  *                username :
  *                  type : string
+ *                firstName : 
+ *                  type : string
+ *                lastName :
+ *                  type: string
  *                password :
  *                  type : string
  *                role :
@@ -83,5 +89,8 @@ userRouter.post("/register", createUser);
  */
 
 userRouter.post("/login", loginUser);
+userRouter.post("/add", userCreate);
+userRouter.get("/fetched/:id", getUserId);
+userRouter.patch("/update-user", updateUserDetaisById)
 
 export default userRouter;

@@ -6,9 +6,12 @@ export const messages = {
   USER_ERR: "Failed to create user due to an unknown error.",
   EXISTING_USER: "User already exists.",
   USER_NOT_FOUND: "User not found.",
+  USER_FOUND : "USer found",
   INCORRECT_PASSWORD: "Incorrect password. Please try again.",
   CUSTOM_ERROR: "Internal server error.",
   TOKENLESS_ERROR: "Authentication token not provided.",
+  USER_CREATED:'User Created Successfully',
+  USER_UPDATED: 'User Updated  Successfully',
 
   // MANAGER MESSAGES
   MANAGER_CREATED: "Manager created successfully.",
