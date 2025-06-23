@@ -33,15 +33,47 @@ export const createManager = async (req: Request, res: Response) => {
 
 export const getAllManagers = async (req: Request, res: Response) => {
   try {
-    const managers = await User.find({isDeleted:false,role:'PROJECT_MANAGER'});
+    const managers = await User.aggregate([
+      {
+        $match: {
+          isDeleted: false
+        }
+      },
+      {
+        $lookup: {
+          from: "roles",               // collection name in MongoDB (usually lowercase plural)
+          localField: "role",          // field in User
+          foreignField: "_id",         // field in Role
+          as: "roleData"
+        }
+      },
+      {
+        $unwind: "$roleData"
+      },
+      {
+        $match: {
+          "roleData.role": "PROJECT_MANAGER",
+          "roleData.isDeleted": false
+        }
+      },
+      {
+        $project: {
+          password: 0, // exclude password
+          roleData: 0, // optionally exclude role details if not needed
+        }
+      }
+    ]);
+
     if (managers.length === 0) {
-      apiResponse(res, StatusCodes.OK, messages.MANAGER_NOT_FOUND,[]);
+      return apiResponse(res, StatusCodes.OK, messages.MANAGER_NOT_FOUND, []);
     }
-    apiResponse(res, StatusCodes.OK, messages.MANAGER_FOUND, managers);
+
+    return apiResponse(res, StatusCodes.OK, messages.MANAGER_FOUND, managers);
   } catch (error) {
-    handleError(res, error);  
+    return handleError(res, error);
   }
 };
+
 
 export const getManagerById = async (req: Request, res: Response) => {
   try {
