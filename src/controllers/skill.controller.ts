@@ -34,8 +34,14 @@ export const addSkill = async (req: Request, res: Response) => {
 export const getAllSkill = async (req: Request, res: Response) => {
   try {
     const pagination: any = paginationObject(req.query);
+    const { search } = req.body;
 
-    const skill = await Skill.find()
+    const query: any = {};
+    if (search) {
+      query.$or = [{ skill: { $regex: search, $options: "i" } }];
+    }
+
+    const skill = await Skill.find(query)
       .sort(pagination.sort)
       .skip(pagination.skip)
       .limit(pagination.resultPerPage);
