@@ -7,7 +7,7 @@ dotenv.config();
 
 const start = async () => {
   await connectDB();
-  // seedRole()
+  seedRole()
 console.log(process.env.PORT)
   app.listen(process.env.PORT, () => {
     console.log(
