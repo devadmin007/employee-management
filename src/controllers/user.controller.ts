@@ -55,7 +55,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const parseResult = loginSchema.parse(req.body);
     const { username, password } = parseResult;
 
-    const user = await User.findOne({ username });
+    const user:any = await User.findOne({ username }).populate('role');
     if (!user) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
       return;
@@ -78,9 +78,10 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     apiResponse(res, StatusCodes.OK, messages.USER_LOGIN_SUCCESS, {
       token: accessToken,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      username : user.username
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      username : user?.username,
+      role: user?.role?.role
     });
   } catch (error) {
     handleError(res, error);
