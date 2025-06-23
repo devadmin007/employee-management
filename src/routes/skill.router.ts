@@ -55,11 +55,11 @@ skillRouter.post("/add-skill",authMiddleware,authorization,addSkill);
  *  @openapi
  *  /api/skills:
  *    get:
- *      security:
- *       - bearerAuth: []
+ *      summary: Get all Skills with optional pagination and sorting
  *      tags:
- *        - Skill Controller     
- *      summary: Get all Skills with optional pagination and search
+ *        - Skill Controller
+ *      security:
+ *        - bearerAuth: []
  *      parameters:
  *        - in: query
  *          name: page
@@ -74,16 +74,26 @@ skillRouter.post("/add-skill",authMiddleware,authorization,addSkill);
  *            default: 10
  *          description: Number of skills per page
  *        - in: query
- *          name: search
+ *          name: sortField
  *          schema:
  *            type: string
- *          description: Search term to filter skills by label (case-insensitive)
- *      responses :
+ *            default: createdAt
+ *          description: Field to sort by (e.g., "label", "createdAt")
+ *        - in: query
+ *          name: sortOrder
+ *          schema:
+ *            type: string
+ *            enum: [asc, desc]
+ *            default: desc
+ *          description: Sort direction ("asc" for ascending, "desc" for descending)
+ *      responses:
  *        '200':
- *          description : OK
- *        '404' :
- *          description : Not found
+ *          description: Skills fetched successfully
+ *        '404':
+ *          description: Not found
  */
+
+
 skillRouter.get('/skills',authMiddleware,authorization,getAllSkill);
 
 /**

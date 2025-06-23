@@ -47,7 +47,6 @@ export const getAllSkill = async (req: Request, res: Response) => {
       skill,
       toalCount: skill.length,
     });
-
   } catch (error) {
     handleError(res, error);
   }
