@@ -1,24 +1,31 @@
 import { Request } from "express";
 
-export const commonPagination = async (req: Request, modelName: any) => {
-  try {
-    const page = Number(req.query.page as string) || 1;
-    const limit = Number(req.query.limit as string) || 10;
-    const { search } = req.query as { search?: string };
-    const skip = (page - 1) * limit;
 
-    const query: any = {};
 
-    if (search) {
-      query.$or = [{ label: { $regex: search, $options: "i" } }];
-    }
-    const skill = await modelName.find(query).skip(skip).limit(limit);
-    const totalCount = await modelName.countDocuments();
-    const totalPages = Math.ceil(totalCount / limit);
+interface PaginationInput {
+  page?: number;
+  itemsPerPage?: number;
+  sortOrder?: "asc" | "desc";
+  sortField?: string | any;
+}
 
-    return { skip, totalCount, totalPages, search, skill, currentPage: page };
-  } catch (error: any) {
-    console.log(`error occured in commonPagination ${error}`);
-    throw new Error(error);
-  }
+interface PaginationOutput {
+  page: number;
+  skip: number;
+  resultPerPage: number;
+  sort: Record<string, number>;
+}
+
+export const paginationObject = (
+  paginationObject: PaginationInput
+): PaginationOutput => {
+  const page = Number(paginationObject.page) || 1;
+  const resultPerPage = Number(paginationObject.itemsPerPage) || 10;
+  const skip = resultPerPage * (page - 1);
+  const sortOrder = paginationObject.sortOrder === "asc" ? 1 : -1;
+  const sortField = paginationObject.sortField?.trim()
+    ? paginationObject.sortField
+    : "createdAt";
+  const sort: Record<string, number> = { [sortField]: sortOrder };
+  return { page, skip, resultPerPage, sort };
 };

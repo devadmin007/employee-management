@@ -1,10 +1,11 @@
-import { Document, Schema, model } from "mongoose";
+import { Document, Schema, Types, model } from "mongoose";
 
 export interface User {
   username: string;
   password: string;
-  role: string;
+  role:  Types.ObjectId;
   email: string;
+  image: string;
   personalEmail :string,
   firstName: string;
   lastName: string;
@@ -55,10 +56,13 @@ const userSchema = new Schema<UserDocument>(
       employeeId: {
       type: String,
     },
+    image:{
+      type : String
+    },
     role: {
-      type: String,
+      ref: 'Role',
+      type: Schema.Types.ObjectId,
       required: true,
-      enum: ["HR", "EMPLOYEE", "ADMIN", "PROJECT_MANAGER"],
     },
       isActive: { type: Boolean, default: true },
       isDeleted: { type: Boolean, default: false },

@@ -1,5 +1,5 @@
 import { z } from "zod";
-
+const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 export const registerSchema = z.object({
   username: z
     .string()
@@ -8,14 +8,10 @@ export const registerSchema = z.object({
       message:
         "Username must contain only alphanumeric characters, underscores, or hyphens",
     }),
-    firstName : z.string().min(1,"Firstname is required"),
-    lastName : z.string().min(1,"Last name is required"),
+  firstName: z.string().min(1, "Firstname is required"),
+  lastName: z.string().min(1, "Last name is required"),
   password: z.string().min(1, "Password Must be required"),
-  role: z.enum(["HR", "EMPLOYEE", "ADMIN", "PROJECT_MANAGER"], {
-    errorMap: () => ({
-      message: "Role must be one of HR, EMPLOYEE, ADMIN, or PROJECT_MANAGER",
-    }),
-  }),
+  role: z.string().min(1, "role Must be required"), 
 });
 
 export const loginSchema = z.object({
@@ -67,42 +63,36 @@ export const skillZodSchema = z.object({
 export const updateSkillSchema = skillZodSchema;
 
 export const createHolidaySchema = z.object({
-  label: z.string().min(1, "Holiday is required")
-})
+  label: z.string().min(1, "Holiday is required"),
+});
 
-export const updateHolidaySchema = createHolidaySchema
+export const updateHolidaySchema = createHolidaySchema;
 
 export const createDesignationSchema = z.object({
-  label: z.string().min(1, "Holiday is required")
-})
+  label: z.string().min(1, "Holiday is required"),
+});
 
-export const updateDesignationSchema = createDesignationSchema
-
-
+export const updateDesignationSchema = createDesignationSchema;
 
 
-
-
-// Reusable address and bank schema
 const addressSchema = z.object({
-  street: z.string().min(1, "Street is required"),
-  city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required"),
-  country: z.string().min(1, "Country is required"),
-  zip: z.string().min(1, "Zip is required"),
+  street: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().optional(),
+  zip: z.string().optional(),
 });
 
 const bankDetailsSchema = z.object({
-  accountNumber: z.string().min(1, "Account Number is required"),
-  ifscCode: z.string().min(1, "IFSC Code is required"),
-  branchName: z.string().min(1, "Branch Name is required"),
+  accountNumber: z.string().min(1,"account number is required"),
+  ifscCode: z.string().min(1,"ifsc code is required"),
+  branchName: z.string().min(1,"branch name is required"),
 });
 
 export const userDetailsSchema = z.object({
-
   managerId: z.string().min(1, "Manager ID is required"),
-  employeeId: z.string().min(1, "Employee ID is required"),
 
+  image: z.string().optional(),
   countryCode: z.string().optional(),
   phoneNumber: z.string().optional(),
   personalNumber: z.string().optional(),
@@ -110,9 +100,8 @@ export const userDetailsSchema = z.object({
   dateOfBirth: z.coerce.date().optional(),
   gender: z.string().optional(),
 
-
-  permenentAddress: addressSchema,
-  currentAddress: addressSchema,
+  permenentAddress: addressSchema.optional(),
+  currentAddress: addressSchema.optional(),
 
   joiningDate: z.coerce.date().optional(),
   probationDate: z.coerce.date().optional(),
@@ -128,10 +117,10 @@ export const userDetailsSchema = z.object({
   relieivingDate: z.coerce.date().optional(),
 
   teamId: z.string().optional(),
-  designationId: z.string().min(1,"Designstion Id required"),
+  designationId: z.string().min(1, "Designstion Id required"),
   department: z.string().optional(),
 
-  primarySkills: z.string().min(1,"Primaryskill required"),
+  primarySkills: z.string().min(1, "Primaryskill required"),
   secondarySkills: z.string().optional(),
 
   bankDetails: bankDetailsSchema.optional(),
@@ -139,13 +128,12 @@ export const userDetailsSchema = z.object({
   isDeleted: z.boolean().optional(),
 });
 export const createUserSchema = z.object({
-    firstName : z.string().min(1,"Firstname is required"),
-    lastName : z.string().min(1,"Last name is required"),
-  role: z.enum(["HR", "EMPLOYEE", "ADMIN", "PROJECT_MANAGER"], {
-    errorMap: () => ({
-      message: "Role must be one of HR, EMPLOYEE, ADMIN, or PROJECT_MANAGER",
-    }),
-  }),
+  firstName: z.string().min(1, "Firstname is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  role: z
+    .string()
+    .regex(objectIdRegex, "Invalid Role ObjectId")
+    .nonempty("Role is required"),
 });
 
-export const updateUserSchema = createUserSchema.partial()
+export const updateUserSchema = createUserSchema.partial();
