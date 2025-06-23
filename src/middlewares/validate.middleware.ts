@@ -1,5 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
+import { Role } from "../models/role.model";
+import { User } from "../models/user.model";
 declare global {
   namespace Express {
     interface Request {
@@ -9,11 +11,17 @@ declare global {
 }
 
 export const authorization = async (
-  req: Request,
+  req: any,
   res: Response,
   next: NextFunction
 ) => {
-  const userRole = req.userInfo?.role;
+  // const userRole = req.userInfo?.role;
+  const userId = req.userInfo.id;
+console.log('userINFO',req.userInfo)
+  const roleDoc :any= await User.findById(userId).populate('role');
+    const userRole = roleDoc?.role.role;
+    console.log('userrole',userRole);
+    
   if (userRole === "HR" || userRole === "ADMIN") {
     next();
   } else {

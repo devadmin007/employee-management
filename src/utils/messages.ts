@@ -65,4 +65,10 @@ export const messages = {
   DESIGNATION_UPDATED: "Designation updated successfully.",
   DESIGNATION_NOT_UPDATED: "Failed to update designation.",
   DESIGNATION_DELETED: "Designation deleted successfully.",
+
+  //ROLE
+
+  ROLE_FOUND : 'Role fetched successfully',
+  
+  ROLE_NOT_FOUND : 'Role not found',
 };

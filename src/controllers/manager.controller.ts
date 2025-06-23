@@ -5,6 +5,7 @@ import { apiResponse } from "../utils/apiResponses";
 import { handleError } from "../utils/errHandler";
 import { StatusCodes } from "http-status-codes";
 import { messages } from "../utils/messages";
+import { User } from "../models/user.model";
 
 export const createManager = async (req: Request, res: Response) => {
   try {
@@ -32,7 +33,7 @@ export const createManager = async (req: Request, res: Response) => {
 
 export const getAllManagers = async (req: Request, res: Response) => {
   try {
-    const managers = await Manager.find();
+    const managers = await User.find({isDeleted:false,role:'PROJECT_MANAGER'});
     if (managers.length === 0) {
       apiResponse(res, StatusCodes.OK, messages.MANAGER_NOT_FOUND,[]);
     }

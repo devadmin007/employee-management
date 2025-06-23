@@ -5,6 +5,7 @@ import { apiResponse } from "../utils/apiResponses";
 import { handleError } from "../utils/errHandler";
 import { StatusCodes } from "http-status-codes";
 import { messages } from "../utils/messages";
+import { paginationObject } from "../utils/pagination";
 
 export const createTeam = async (req: Request, res: Response) => {
   try {
@@ -47,11 +48,37 @@ export const createTeam = async (req: Request, res: Response) => {
 
 export const getAllTeam = async (req: Request, res: Response) => {
   try {
-    const teams = await Team.find().populate("managerId",'firstName lastName');
-    if (teams.length === 0) {
+    const pagination: any = paginationObject(req.query);
+
+    const pipeline = [
+      {
+        $lookup: {
+          from: "users",
+          localField: "managerId",
+          foreignField: "_id",
+          as: "userData",
+        },
+      },
+      { $unwind: { path: "$userData", preserveNullAndEmptyArrays: true } },
+      {$project:{
+        value:1,
+         label:1,
+         managerFirstName:'$userData.firstName',
+         managerLastName:'$userData.lastName'
+      }}
+    ];
+    const team = await Team.aggregate(pipeline)
+      .sort(pagination.sort)
+      .skip(pagination.skip)
+      .limit(pagination.resultPerPage);
+
+    if (team.length === 0) {
       apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND, []);
     }
-    apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND, teams);
+    apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND, {
+      team,
+      toalCount: team.length,
+    });
   } catch (error) {
     handleError(res, error);
   }
@@ -61,7 +88,10 @@ export const getTeamById = async (req: Request, res: Response) => {
   try {
     const teamId = req.params.id;
 
-    const team = await Team.findById(teamId).populate("managerId",'firstName lastName');
+    const team = await Team.findById(teamId).populate(
+      "managerId",
+      "firstName lastName"
+    );
     if (!team) {
       apiResponse(res, StatusCodes.BAD_REQUEST, messages.TEAM_NOT_FOUND);
     }

@@ -17,11 +17,11 @@ export interface BankDetails {
 export interface UserDetails {
   userId: Types.ObjectId;
   managerId: Types.ObjectId;
-  employeeId: string;
   countryCode: string;
   phoneNumber: string;
   dateOfBirth: Date;
   gender: string;
+  image: string;
   permenentAddress: Address;
   currentAddress: Address;
   joiningDate: Date;
@@ -60,10 +60,9 @@ const userDetailSchema = new Schema<UserDetailsDocument>(
       required: true,
       ref: "User",
     },
-    employeeId: {
-      type: String,
-      required: true,
-      unique: true,
+
+    image :{
+      type: String
     },
     countryCode: {
       type: String,
