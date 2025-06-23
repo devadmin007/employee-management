@@ -79,7 +79,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     apiResponse(res, StatusCodes.OK, messages.USER_LOGIN_SUCCESS, {
       token: accessToken,
       firstName: user.firstName,
-      lastName: user.lastName
+      lastName: user.lastName,
+      username : user.username
     });
   } catch (error) {
     handleError(res, error);
