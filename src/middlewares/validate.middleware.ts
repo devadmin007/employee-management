@@ -15,13 +15,12 @@ export const authorization = async (
   res: Response,
   next: NextFunction
 ) => {
-  // const userRole = req.userInfo?.role;
+ 
   const userId = req.userInfo.id;
-console.log('userINFO',req.userInfo)
+
   const roleDoc :any= await User.findById(userId).populate('role');
     const userRole = roleDoc?.role.role;
-    console.log('userrole',userRole);
-    
+
   if (userRole === "HR" || userRole === "ADMIN") {
     next();
   } else {
@@ -29,4 +28,16 @@ console.log('userINFO',req.userInfo)
       message: "You are not authorized to access this resource.",
     });
   }
+};
+
+
+export const authorize = (...roles: string[]) => {
+  return (req: any, res: Response, next: NextFunction) => {
+    if (!roles.includes(req.user.role)) {
+      res.status(StatusCodes.UNAUTHORIZED).json({
+      message: "You are not authorized to access this resource.",
+    });
+    }
+    next();
+  };
 };

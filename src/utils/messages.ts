@@ -71,4 +71,11 @@ export const messages = {
   ROLE_FOUND : 'Role fetched successfully',
   
   ROLE_NOT_FOUND : 'Role not found',
+
+  //ADMIN
+ADMIN_ADDED: 'Admin added successfully',
+ADMIN_NOT_EXIST : 'Admin role not found. Seed roles first.',
+ADMIN_EXIST : 'Admin already exist'
 };
+
+

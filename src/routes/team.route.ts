@@ -57,21 +57,96 @@ const teamRouter = express.Router();
 
 teamRouter.post("/create-team", authMiddleware, authorization, createTeam);
 
+// /**
+//  *  @openapi
+//  *  /api/teams:
+//  *    get:
+//  *      security:
+//  *        - bearerAuth: []
+//  *      tags:
+//  *        - Team Controller
+//  *      summary : Get all Teams
+//  *      responses :
+//  *        '200':
+//  *          description : OK
+//  *        '404' :
+//  *          description : Not found
+//  */
 /**
+ * 
  *  @openapi
  *  /api/teams:
  *    get:
- *      security:
- *        - bearerAuth: []
+ *      summary: Get all Teams
  *      tags:
  *        - Team Controller
- *      summary : Get all Teams
- *      responses :
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: query
+ *          name: page
+ *          schema:
+ *            type: integer
+ *            default: 1
+ *          description: Page number for pagination
+ *        - in: query
+ *          name: limit
+ *          schema:
+ *            type: integer
+ *            default: 10
+ *          description: Number of results per page
+ *        - in: query
+ *          name: sortBy
+ *          schema:
+ *            type: string
+ *            default: createdAt
+ *          description: Field to sort by
+ *        - in: query
+ *          name: sortOrder
+ *          schema:
+ *            type: string
+ *            enum: [asc, desc]
+ *            default: desc
+ *          description: Sort direction
+ *      responses:
  *        '200':
- *          description : OK
- *        '404' :
- *          description : Not found
+ *          description: Successfully fetched teams
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  success:
+ *                    type: boolean
+ *                  message:
+ *                    type: string
+ *                    example: Teams fetched successfully
+ *                  data:
+ *                    type: object
+ *                    properties:
+ *                      team:
+ *                        type: array
+ *                        items:
+ *                          type: object
+ *                          properties:
+ *                            value:
+ *                              type: string
+ *                            label:
+ *                              type: string
+ *                            managerFirstName:
+ *                              type: string
+ *                              nullable: true
+ *                            managerLastName:
+ *                              type: string
+ *                              nullable: true
+ *                      toalCount:
+ *                        type: integer
+ *        '404':
+ *          description: No teams found
+ *        '401':
+ *          description: Unauthorized – Bearer token missing or invalid
  */
+
 
 teamRouter.get("/teams", authMiddleware, authorization, getAllTeam);
 
