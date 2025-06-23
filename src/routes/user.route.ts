@@ -262,6 +262,21 @@ userRouter.patch(
   authorization,
   updateUserDetaisById
 );
-
-userRouter.get('/roles',authMiddleware,authorization,getAllRole)
+/**
+ *  @openapi
+ *
+ *  /api/roles:
+ *    get:
+ *      tags:
+ *        - User Controller
+ *      summary : get all role api
+ *      responses :
+ *        '200':
+ *          description : OK
+ *        '400' :
+ *          descrription : Bad request
+ *        '404' :
+ *          description : Not found
+ */
+userRouter.get('/roles',getAllRole)
 export default userRouter;

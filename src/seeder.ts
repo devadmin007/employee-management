@@ -7,7 +7,12 @@ const createrole = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 export const seedRole = async () => {
     try{
         console.log(createrole)
+        const roleData  =  await Role.find()
+        if(roleData.length === 0){
         await Role.create(createrole)
+        }else{
+          console.log('Role exist')
+        }
   } catch (error: any) {
     return error.message;
   }

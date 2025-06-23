@@ -250,7 +250,7 @@ export const updateUserDetaisById = async (req: Request, res: Response) => {
 
 export const getAllRole = async (req: Request, res: Response) => {
   try {
-    const roles = await Role.find();
+const roles = await Role.find({ role: { $ne: "ADMIN" } });
 
     if (roles.length === 0) {
       return apiResponse(res, StatusCodes.OK, messages.ROLE_NOT_FOUND);
