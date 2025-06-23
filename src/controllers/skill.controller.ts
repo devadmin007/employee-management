@@ -5,7 +5,7 @@ import { handleError } from "../utils/errHandler";
 import { StatusCodes } from "http-status-codes";
 import { Skill } from "../models/skill.model";
 import { messages } from "../utils/messages";
-import { commonPagination } from "../utils/pagination";
+import { paginationObject } from "../utils/pagination";
 
 export const addSkill = async (req: Request, res: Response) => {
   try {
@@ -33,19 +33,21 @@ export const addSkill = async (req: Request, res: Response) => {
 
 export const getAllSkill = async (req: Request, res: Response) => {
   try {
-    const { skill, totalCount, totalPages, currentPage } =
-      await commonPagination(req, Skill);
+    const pagination: any = paginationObject(req.query);
 
-    if (skill) {
-      apiResponse(res, StatusCodes.OK, messages.SKILLS_FOUND, {
-        skill,
-        totalCount,
-        totalPages,
-        currentPage,
-      });
-      return;
+    const skill = await Skill.find()
+      .sort(pagination.sort)
+      .skip(pagination.skip)
+      .limit(pagination.resultPerPage);
+
+    if (skill.length === 0) {
+      apiResponse(res, StatusCodes.OK, messages.SKILLS_FOUND, []);
     }
-    apiResponse(res, StatusCodes.NOT_FOUND, messages.SKILLS_NOT_FOUND);
+    apiResponse(res, StatusCodes.OK, messages.SKILLS_FOUND, {
+      skill,
+      toalCount: skill.length,
+    });
+
   } catch (error) {
     handleError(res, error);
   }

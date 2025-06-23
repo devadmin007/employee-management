@@ -2,12 +2,14 @@ import app from "./app";
 import dotenv from "dotenv";
 import { connectDB } from "./config/connection";
 import { setupSwagger } from "./utils/swagger";
-import { seedRole } from "./seeder";
+import { createAdminUser, seedRole } from "./seeder";
 dotenv.config();
 
 const start = async () => {
   await connectDB();
-  seedRole()
+    // createAdminUser();
+  // seedRole();
+
 console.log(process.env.PORT)
   app.listen(process.env.PORT, () => {
     console.log(

@@ -1,7 +1,5 @@
 import { Request } from "express";
 
-
-
 interface PaginationInput {
   page?: number;
   itemsPerPage?: number;
