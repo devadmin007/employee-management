@@ -84,7 +84,19 @@ export const messages = {
   //ADMIN MESSAGES
 ADMIN_ADDED: 'Admin added successfully',
 ADMIN_NOT_EXIST : 'Admin role not found. Seed roles first.',
-ADMIN_EXIST : 'Admin already exist'
+ADMIN_EXIST : 'Admin already exist',
+
+
+//LEAVE MESSAGES
+
+LEAVE_ADDED : 'Leave added successfully',
+LEAVE_NOT_ADDED :'Leave not added',
+LEAVE_NOT_EXIST : 'Leave not exist',
+LEAVE_EXIST : 'Leave already exist',
+LEAVE_FOUND : 'Leave fetched successfully',
+LEAVE_NOT_FOUND : 'Leave not found',
+LEAVE_UPDATED : 'Leave Updated Succesfully'
+
 };
 
 
