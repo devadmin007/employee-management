@@ -48,7 +48,6 @@ export const messages = {
 
   // HOLIDAY MESSAGES
   HOLIDAY_CREATED: "Holiday created successfully.",
-  HOLIDAY_TEAM: "Team already exists for this holiday.",
   HOLIDAY_NOT_FOUND: "Holiday not found.",
   HOLIDAY_EXIST: "Holiday already exists.",
   HOLIDAY_FOUND: "Holiday fetched successfully.",
@@ -58,7 +57,6 @@ export const messages = {
 
   // DESIGNATION MESSAGES
   DESIGNATION_CREATED: "Designation created successfully.",
-  DESIGNATION_TEAM: "Team already exists for this designation.",
   DESIGNATION_NOT_FOUND: "Designation not found.",
   DESIGNATION_EXIST: "Designation already exists.",
   DESIGNATION_FOUND: "Designation fetched successfully.",
@@ -66,13 +64,24 @@ export const messages = {
   DESIGNATION_NOT_UPDATED: "Failed to update designation.",
   DESIGNATION_DELETED: "Designation deleted successfully.",
 
-  //ROLE
+
+  //DEPARTMENT MESSAGES
+
+  DEPARTMENT_CREATED: "Department, created successfully.",
+  DEPARTMENT_NOT_FOUND: "Department not found.",
+  DEPARTMENT_EXIST: "Department already exists.",
+  DEPARTMENT_FOUND: "Department fetched successfully.",
+  DEPARTMENT_UPDATED: "Department updated successfully.",
+  DEPARTMENT_NOT_UPDATED: "Failed to update department.",
+  DEPARTMENT_DELETED: "Department deleted successfully.",
+
+  //ROLE MESSAGES
 
   ROLE_FOUND : 'Role fetched successfully',
   
   ROLE_NOT_FOUND : 'Role not found',
 
-  //ADMIN
+  //ADMIN MESSAGES
 ADMIN_ADDED: 'Admin added successfully',
 ADMIN_NOT_EXIST : 'Admin role not found. Seed roles first.',
 ADMIN_EXIST : 'Admin already exist'

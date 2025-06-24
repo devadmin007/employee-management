@@ -11,7 +11,7 @@ export const registerSchema = z.object({
   firstName: z.string().min(1, "Firstname is required"),
   lastName: z.string().min(1, "Last name is required"),
   password: z.string().min(1, "Password Must be required"),
-  role: z.string().min(1, "role Must be required"), 
+  role: z.string().min(1, "role Must be required"),
 });
 
 export const loginSchema = z.object({
@@ -74,6 +74,11 @@ export const createDesignationSchema = z.object({
 
 export const updateDesignationSchema = createDesignationSchema;
 
+export const createDepartmentSchema = z.object({
+  label: z.string().min(1, "Department is required"),
+});
+
+export const updateDepartmentSchema = createDepartmentSchema;
 
 const addressSchema = z.object({
   street: z.string().optional(),
@@ -84,9 +89,9 @@ const addressSchema = z.object({
 });
 
 const bankDetailsSchema = z.object({
-  accountNumber: z.string().min(1,"account number is required"),
-  ifscCode: z.string().min(1,"ifsc code is required"),
-  branchName: z.string().min(1,"branch name is required"),
+  accountNumber: z.string().min(1, "account number is required"),
+  ifscCode: z.string().min(1, "ifsc code is required"),
+  branchName: z.string().min(1, "branch name is required"),
 });
 
 export const userDetailsSchema = z.object({

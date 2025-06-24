@@ -41,9 +41,9 @@ export const getAllManagers = async (req: Request, res: Response) => {
       },
       {
         $lookup: {
-          from: "roles",               // collection name in MongoDB (usually lowercase plural)
-          localField: "role",          // field in User
-          foreignField: "_id",         // field in Role
+          from: "roles",              
+          localField: "role",          
+          foreignField: "_id",         
           as: "roleData"
         }
       },
@@ -58,8 +58,8 @@ export const getAllManagers = async (req: Request, res: Response) => {
       },
       {
         $project: {
-          password: 0, // exclude password
-          roleData: 0, // optionally exclude role details if not needed
+          password: 0,
+          roleData: 0, 
         }
       }
     ]);

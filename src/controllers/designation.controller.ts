@@ -5,6 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { messages } from "../utils/messages";
 import { Designation } from "../models/designation.model";
 import { createDesignationSchema, updateDesignationSchema } from "../utils/zod";
+import { paginationObject } from "../utils/pagination";
 
 export const addDesignation = async (req: Request, res: Response) => {
   try {
@@ -35,18 +36,28 @@ export const addDesignation = async (req: Request, res: Response) => {
 
 export const getAlldesignations = async (req: Request, res: Response) => {
   try {
-    const designation = await Designation.find();
+const pagination: any = paginationObject(req.query);
+    const { search } = req.query as {
+      search?: string;
+    };
+
+    const query: any = {};
+    if (search) {
+      query.$or = [{ label: { $regex: search, $options: "i" } }];
+    }
+
+    const designation = await Designation.find(query)
+      .sort(pagination.sort)
+      .skip(pagination.skip)
+      .limit(pagination.resultPerPage);
+
     if (designation.length === 0) {
-      return apiResponse(
-        res,
-        StatusCodes.OK,
-        messages.DESIGNATION_FOUND,
-        []
-      );
+      apiResponse(res, StatusCodes.OK, messages.DESIGNATION_FOUND, []);
     }
 
     apiResponse(res, StatusCodes.OK, messages.DESIGNATION_FOUND, {
       designations: designation,
+      totalcount: designation.length,
     });
   } catch (error) {
     handleError(res, error);

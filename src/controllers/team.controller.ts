@@ -48,9 +48,19 @@ export const createTeam = async (req: Request, res: Response) => {
 
 export const getAllTeam = async (req: Request, res: Response) => {
   try {
-    const pagination: any = paginationObject(req.query);
+   const pagination: any = paginationObject(req.query);
+    const { search } = req.query as { search?: string };
+    const pipeline: any[] = [
+      ...(search
+        ? [
+            {
+              $match: {
+                $or: [{ label: { $regex: search, $options: "i" } }],
+              },
+            },
+          ]
+        : []),
 
-    const pipeline = [
       {
         $lookup: {
           from: "users",
@@ -60,12 +70,20 @@ export const getAllTeam = async (req: Request, res: Response) => {
         },
       },
       { $unwind: { path: "$userData", preserveNullAndEmptyArrays: true } },
-      {$project:{
-        value:1,
-         label:1,
-         managerFirstName:'$userData.firstName',
-         managerLastName:'$userData.lastName'
-      }}
+      {
+        $project: {
+          value: 1,
+          label: 1,
+          managerFirstName: "$userData.firstName",
+          managerLastName: "$userData.lastName",
+        },
+      },
+      {
+        $sort: pagination.sort,
+      },
+      {
+        $limit: pagination.resultPerPage,
+      },
     ];
     const team = await Team.aggregate(pipeline)
       .sort(pagination.sort)
@@ -77,7 +95,7 @@ export const getAllTeam = async (req: Request, res: Response) => {
     }
     apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND, {
       team,
-      toalCount: team.length,
+      totalCount: team.length,
     });
   } catch (error) {
     handleError(res, error);

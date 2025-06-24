@@ -34,11 +34,13 @@ export const addSkill = async (req: Request, res: Response) => {
 export const getAllSkill = async (req: Request, res: Response) => {
   try {
     const pagination: any = paginationObject(req.query);
-    const { search } = req.body;
+    const { search } = req.query as {
+      search?: string;
+    };
 
     const query: any = {};
     if (search) {
-      query.$or = [{ skill: { $regex: search, $options: "i" } }];
+      query.$or = [{ label: { $regex: search, $options: "i" } }];
     }
 
     const skill = await Skill.find(query)
@@ -51,7 +53,7 @@ export const getAllSkill = async (req: Request, res: Response) => {
     }
     apiResponse(res, StatusCodes.OK, messages.SKILLS_FOUND, {
       skill,
-      toalCount: skill.length,
+      totalCount: skill.length,
     });
   } catch (error) {
     handleError(res, error);

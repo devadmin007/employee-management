@@ -2,14 +2,14 @@ import express from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { authorization } from "../middlewares/validate.middleware";
 import {
-  addDesignation,
-  deletedesignationById,
-  getAlldesignations,
-  getdesignation,
-  updatedesignationById,
-} from "../controllers/designation.controller";
+  addDepartment,
+  deleteDepartmentById,
+  getAllDepartments,
+  getDepartment,
+  updateDepartmentById,
+} from "../controllers/department.controller";
 
-const designationRouter = express.Router();
+const departmentRouter = express.Router();
 
 /**
  * @openapi
@@ -23,13 +23,13 @@ const designationRouter = express.Router();
 
 /**
  *  @openapi
- *  /api/add-designation:
+ *  /api/add-department:
  *    post:
  *      tags:
- *        - Designation Controller
+ *        - Department Controller
  *      security:
  *       - bearerAuth: []
- *      summary : Add designation
+ *      summary : Add department
  *      requestBody :
  *        required : true
  *        content :
@@ -52,20 +52,20 @@ const designationRouter = express.Router();
  *          description : Not found
  */
 
-designationRouter.post(
-  "/add-designation",
+departmentRouter.post(
+  "/add-department",
   authMiddleware,
   authorization,
-  addDesignation
+  addDepartment
 );
 
 /**
  *  @openapi
- *  /api/designations:
+ *  /api/departments:
  *    get:
- *      summary: Get all Designations with optional pagination and search
+ *      summary: Get all Departments with optional pagination and search
  *      tags:
- *        - Designation Controller
+ *        - Department Controller
  *      security:
  *        - bearerAuth: []
  *      parameters:
@@ -80,7 +80,7 @@ designationRouter.post(
  *          schema:
  *            type: integer
  *            default: 10
- *          description: Number of designations per page
+ *          description: Number of departments per page
  *        - in: query
  *          name: sortBy
  *          schema:
@@ -98,11 +98,11 @@ designationRouter.post(
  *          name: search
  *          schema:
  *            type: string
- *            example: manager
- *          description: Search term to filter designations by name
+ *            example: IT Department
+ *          description: Search term to filter department by name
  *      responses:
  *        '200':
- *          description: Designations fetched successfully
+ *          description: Department fetched successfully
  *          content:
  *            application/json:
  *              schema:
@@ -113,11 +113,11 @@ designationRouter.post(
  *                    example: success
  *                  message:
  *                    type: string
- *                    example: Designations fetched successfully
+ *                    example: Department fetched successfully
  *                  data:
  *                    type: object
  *                    properties:
- *                      designations:
+ *                      department:
  *                        type: array
  *                        items:
  *                          type: object
@@ -130,27 +130,27 @@ designationRouter.post(
  *                        type: integer
  *                        example: 10
  *        '404':
- *          description: No designations found
+ *          description: No department found
  *        '401':
  *          description: Unauthorized – Bearer token missing or invalid
  */
 
-designationRouter.get(
-  "/designations",
+departmentRouter.get(
+  "/departments",
   authMiddleware,
   authorization,
-  getAlldesignations
+  getAllDepartments
 );
 
 /**
  *  @openapi
- *  /api/designation/{id}:
+ *  /api/department/{id}:
  *    get:
  *      security:
  *       - bearerAuth: []
  *      tags:
- *        - Designation Controller
- *      summary : Get a designation by ID
+ *        - Department Controller
+ *      summary : Get a department by ID
  *      parameters:
  *        - in: path
  *          name: id
@@ -165,22 +165,22 @@ designationRouter.get(
  *        '404' :
  *          description : Not found
  */
-designationRouter.get(
-  "/designation/:id",
+departmentRouter.get(
+  "/department/:id",
   authMiddleware,
   authorization,
-  getdesignation
+  getDepartment
 );
 
 /**
  *  @openapi
- *  /api/update-designation/{id}:
+ *  /api/update-department/{id}:
  *    patch:
  *      security:
  *       - bearerAuth: []
  *      tags:
- *        - Designation Controller
- *      summary : Update a designation by ID
+ *        - Department Controller
+ *      summary : Update a department by ID
  *      parameters:
  *        - in: path
  *          name: id
@@ -205,22 +205,22 @@ designationRouter.get(
  *        '404' :
  *          description : Not found
  */
-designationRouter.patch(
-  "/update-designation/:id",
+departmentRouter.patch(
+  "/update-department/:id",
   authMiddleware,
   authorization,
-  updatedesignationById
+  updateDepartmentById
 );
 
 /**
  *  @openapi
- *  /api/delete-designation/{id}:
+ *  /api/delete-department/{id}:
  *    delete:
  *      security:
  *       - bearerAuth: []
  *      tags:
- *        - Designation Controller
- *      summary : Delete a designation by ID
+ *        - Department Controller
+ *      summary : Delete a department by ID
  *      parameters:
  *        - in: path
  *          name: id
@@ -233,11 +233,11 @@ designationRouter.patch(
  *        '404' :
  *          description : Not found
  */
-designationRouter.delete(
-  "/delete-designation/:id",
+departmentRouter.delete(
+  "/delete-department/:id",
   authMiddleware,
   authorization,
-  deletedesignationById
+  deleteDepartmentById
 );
 
-export default designationRouter;
+export default departmentRouter;

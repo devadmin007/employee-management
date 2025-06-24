@@ -1,10 +1,15 @@
 import express from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { authorization } from "../middlewares/validate.middleware";
-import { addSkill, deleteSkillById, getAllSkill, getSkillById, updateSkillById } from "../controllers/skill.controller";
+import {
+  addSkill,
+  deleteSkillById,
+  getAllSkill,
+  getSkillById,
+  updateSkillById,
+} from "../controllers/skill.controller";
 
 const skillRouter = express.Router();
-
 
 /**
  * @openapi
@@ -47,15 +52,13 @@ const skillRouter = express.Router();
  *          description : Not found
  */
 
-
-
-skillRouter.post("/add-skill",authMiddleware,authorization,addSkill);
+skillRouter.post("/add-skill", authMiddleware, authorization, addSkill);
 
 /**
  *  @openapi
  *  /api/skills:
  *    get:
- *      summary: Get all Skills with optional pagination and sorting
+ *      summary: Get all Skills with optional pagination and search
  *      tags:
  *        - Skill Controller
  *      security:
@@ -68,33 +71,70 @@ skillRouter.post("/add-skill",authMiddleware,authorization,addSkill);
  *            default: 1
  *          description: Page number for pagination
  *        - in: query
- *          name: limit
+ *          name: resultPerPage
  *          schema:
  *            type: integer
  *            default: 10
  *          description: Number of skills per page
  *        - in: query
- *          name: sortField
+ *          name: sortBy
  *          schema:
  *            type: string
  *            default: createdAt
- *          description: Field to sort by (e.g., "label", "createdAt")
+ *          description: Field to sort by
  *        - in: query
  *          name: sortOrder
  *          schema:
  *            type: string
  *            enum: [asc, desc]
  *            default: desc
- *          description: Sort direction ("asc" for ascending, "desc" for descending)
+ *          description: Sort direction
+ *        - in: query
+ *          name: search
+ *          schema:
+ *            type: string
+ *            example: javascript
+ *          description: Search term to filter skills by name
  *      responses:
  *        '200':
  *          description: Skills fetched successfully
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  status:
+ *                    type: string
+ *                    example: success
+ *                  message:
+ *                    type: string
+ *                    example: Teams fetched successfully
+ *                  data:
+ *                    type: object
+ *                    properties:
+ *                      team:
+ *                        type: array
+ *                        items:
+ *                          type: object
+ *                          properties:
+ *                            value:
+ *                              type: string
+ *                            label:
+ *                              type: string
+ *                            managerFirstName:
+ *                              type: string
+ *                              nullable: true
+ *                            managerLastName:
+ *                              type: string
+ *                              nullable: true
+ *                      totalCount:
+ *                        type: integer
+ *                        example: 5
  *        '404':
  *          description: Not found
  */
 
-
-skillRouter.get('/skills',authMiddleware,authorization,getAllSkill);
+skillRouter.get("/skills", authMiddleware, authorization, getAllSkill);
 
 /**
  *  @openapi
@@ -118,7 +158,7 @@ skillRouter.get('/skills',authMiddleware,authorization,getAllSkill);
  *        '404' :
  *          description : Not found
  */
-skillRouter.get("/skill/:id",authMiddleware,authorization,getSkillById);
+skillRouter.get("/skill/:id", authMiddleware, authorization, getSkillById);
 
 /**
  *  @openapi
@@ -153,8 +193,12 @@ skillRouter.get("/skill/:id",authMiddleware,authorization,getSkillById);
  *        '404' :
  *          description : Not found
  */
-skillRouter.patch("/update-skill/:id",authMiddleware,authorization,updateSkillById);
-
+skillRouter.patch(
+  "/update-skill/:id",
+  authMiddleware,
+  authorization,
+  updateSkillById
+);
 
 /**
  *  @openapi
@@ -177,5 +221,10 @@ skillRouter.patch("/update-skill/:id",authMiddleware,authorization,updateSkillBy
  *        '404' :
  *          description : Not found
  */
-skillRouter.delete("/delete-skill/:id",authMiddleware,authorization,deleteSkillById)
+skillRouter.delete(
+  "/delete-skill/:id",
+  authMiddleware,
+  authorization,
+  deleteSkillById
+);
 export default skillRouter;
