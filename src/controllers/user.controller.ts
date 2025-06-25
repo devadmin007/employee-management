@@ -61,7 +61,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const parseResult = loginSchema.parse(req.body);
     const { email, password } = parseResult;
 
-    const user: any = await User.findOne({ email }).populate('role');
+    const user: any = await User.findOne({ email: email }).populate('role');
     if (!user) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
       return;
@@ -185,7 +185,6 @@ export const userCreate = async (req: Request, res: Response) => {
         password: hashedPassword,
         image: uploadResult.secure_url,
         employeeId,
-        email: `${firstName.toLowerCase()}_${lastName.toLowerCase()}`,
       });
 
       const savedUser = await user.save();
