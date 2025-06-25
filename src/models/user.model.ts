@@ -3,19 +3,19 @@ import { Document, Schema, Types, model } from "mongoose";
 export interface User {
   username: string;
   password: string;
-  role:  Types.ObjectId;
+  role: Types.ObjectId;
   email: string;
   image: string;
-  personalEmail :string,
+  personalEmail: string,
   firstName: string;
   lastName: string;
   fullName: string;
-  isActive:boolean
-  isDeleted:boolean
-  employeeId:string
+  isActive: boolean
+  isDeleted: boolean
+  employeeId: string
 }
 
-export interface UserDocument extends User, Document {}
+export interface UserDocument extends User, Document { }
 
 const userSchema = new Schema<UserDocument>(
   {
@@ -37,12 +37,12 @@ const userSchema = new Schema<UserDocument>(
       unique: true,
       lowercase: true,
     },
-       personalEmail: {
+    personalEmail: {
       type: String,
-    
+
       lowercase: true,
     },
-    firstName : {
+    firstName: {
       type: String,
     },
     lastName: {
@@ -53,19 +53,19 @@ const userSchema = new Schema<UserDocument>(
       type: String,
       required: true,
     },
-      employeeId: {
+    employeeId: {
       type: String,
     },
-    image:{
-      type : String
+    image: {
+      type: String
     },
     role: {
       ref: 'Role',
       type: Schema.Types.ObjectId,
       required: true,
     },
-      isActive: { type: Boolean, default: true },
-      isDeleted: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true },
+    isDeleted: { type: Boolean, default: false },
   },
 
   {

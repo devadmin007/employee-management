@@ -33,20 +33,17 @@ export interface UserDetails {
   previousExperience: string;
   pfNo: string;
   uanDetail: string;
-  esicNo: string;
-  esicStart: Date;
-  esicEnd: Date;
   teamId: Types.ObjectId;
   designationId: Types.ObjectId;
-  department: string;
-  primarySkills: Types.ObjectId;
-  secondarySkills: Types.ObjectId;
+  department: Types.ObjectId;
+  primarySkills: [Types.ObjectId];
+  secondarySkills: [Types.ObjectId];
   bankDetails: BankDetails;
   isDeleted: boolean;
   relieivingDate: Date;
 }
 
-export interface UserDetailsDocument extends UserDetails, Document {}
+export interface UserDetailsDocument extends UserDetails, Document { }
 
 const userDetailSchema = new Schema<UserDetailsDocument>(
   {
@@ -57,11 +54,10 @@ const userDetailSchema = new Schema<UserDetailsDocument>(
     },
     managerId: {
       type: Schema.Types.ObjectId,
-      required: true,
       ref: "User",
     },
 
-    image :{
+    image: {
       type: String
     },
     countryCode: {
@@ -81,7 +77,7 @@ const userDetailSchema = new Schema<UserDetailsDocument>(
     gender: {
       type: String,
     },
-   
+
     permenentAddress: {
       street: { type: String },
       city: { type: String },
@@ -120,15 +116,7 @@ const userDetailSchema = new Schema<UserDetailsDocument>(
     uanDetail: {
       type: String,
     },
-    esicNo: {
-      type: String,
-    },
-    esicStart: {
-      type: Date,
-    },
-    esicEnd: {
-      type: Date,
-    },
+
     teamId: {
       type: Schema.Types.ObjectId,
       ref: "Team",
@@ -138,17 +126,18 @@ const userDetailSchema = new Schema<UserDetailsDocument>(
       ref: "Designation",
     },
     department: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "Department",
     },
     relieivingDate: {
       type: Date,
     },
     primarySkills: {
-      type: Schema.Types.ObjectId,
+      type: [Schema.Types.ObjectId],
       ref: "Skill",
     },
     secondarySkills: {
-      type: Schema.Types.ObjectId,
+      type: [Schema.Types.ObjectId],
       ref: "Skill",
     },
     bankDetails: {

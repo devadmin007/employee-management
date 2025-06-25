@@ -7,10 +7,10 @@ dotenv.config();
 
 const start = async () => {
   await connectDB();
-    // createAdminUser();
-  // seedRole();
+  createAdminUser();
+  seedRole();
 
-console.log(process.env.PORT)
+  console.log(process.env.PORT)
   app.listen(process.env.PORT, () => {
     console.log(
       `🚀 Server running on port ${process.env.PORT} in ${process.env.NODE_ENV} mode`

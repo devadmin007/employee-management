@@ -4,8 +4,9 @@ import {
   getUserId,
   loginUser,
   userCreate,
-  updateUserDetaisById,
   getAllRole,
+  userList,
+  updateUser,
 } from "../controllers/user.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { authorization } from "../middlewares/validate.middleware";
@@ -104,7 +105,7 @@ userRouter.post("/login", loginUser);
  * @openapi
  * /api/add-user:
  *   post:
- *     summary: Create a new user with employee details
+ *     summary: Create or update user in step-wise manner
  *     tags:
  *       - User Controller
  *     security:
@@ -116,16 +117,15 @@ userRouter.post("/login", loginUser);
  *           schema:
  *             type: object
  *             required:
- *               - firstName
- *               - lastName
- *               - role
- *               - managerId
- *               - designationId
- *               - primarySkills
- *               - bankDetails.accountNumber
- *               - bankDetails.ifscCode
- *               - bankDetails.branchName
+ *               - step
  *             properties:
+ *               step:
+ *                 type: integer
+ *                 enum: [1, 2, 3, 4]
+ *                 description: Step number (1–4)
+ *               userId:
+ *                 type: string
+ *                 description: Required for steps 2–4
  *               firstName:
  *                 type: string
  *               lastName:
@@ -133,8 +133,6 @@ userRouter.post("/login", loginUser);
  *               role:
  *                 type: string
  *                 description: Role ObjectId
- *               managerId:
- *                 type: string
  *               image:
  *                 type: string
  *                 format: binary
@@ -143,50 +141,6 @@ userRouter.post("/login", loginUser);
  *               phoneNumber:
  *                 type: string
  *               personalNumber:
- *                 type: string
- *               dateOfBirth:
- *                 type: string
- *                 format: date
- *               gender:
- *                 type: string
- *               joiningDate:
- *                 type: string
- *                 format: date
- *               probationDate:
- *                 type: string
- *                 format: date
- *               panNo:
- *                 type: string
- *               aadharNo:
- *                 type: string
- *               currentSalary:
- *                 type: string
- *               previousExperience:
- *                 type: string
- *               pfNo:
- *                 type: string
- *               uanDetail:
- *                 type: string
- *               esicNo:
- *                 type: string
- *               esicStart:
- *                 type: string
- *                 format: date
- *               esicEnd:
- *                 type: string
- *                 format: date
- *               relieivingDate:
- *                 type: string
- *                 format: date
- *               teamId:
- *                 type: string
- *               designationId:
- *                 type: string
- *               department:
- *                 type: string
- *               primarySkills:
- *                 type: string
- *               secondarySkills:
  *                 type: string
  *               permenentAddress.street:
  *                 type: string
@@ -208,6 +162,34 @@ userRouter.post("/login", loginUser);
  *                 type: string
  *               currentAddress.zip:
  *                 type: string
+ *               managerId:
+ *                 type: string
+ *               designationId:
+ *                 type: string
+ *               teamId:
+ *                 type: string
+ *               primarySkills:
+ *                 type: string
+ *               secondarySkills:
+ *                 type: string
+ *               department:
+ *                 type: string
+ *               joiningDate:
+ *                 type: string
+ *                 format: date
+ *               probationDate:
+ *                 type: string
+ *                 format: date
+ *               panNo:
+ *                 type: string
+ *               aadharNo:
+ *                 type: string
+ *               pfNo:
+ *                 type: string
+ *               uanDetail:
+ *                 type: string
+ *               previousExperience:
+ *                 type: string
  *               bankDetails.accountNumber:
  *                 type: string
  *               bankDetails.ifscCode:
@@ -216,7 +198,7 @@ userRouter.post("/login", loginUser);
  *                 type: string
  *     responses:
  *       201:
- *         description: User created successfully
+ *         description: Step completed successfully
  *         content:
  *           application/json:
  *             schema:
@@ -231,14 +213,10 @@ userRouter.post("/login", loginUser);
  *                       type: string
  *                     username:
  *                       type: string
- *                     role:
- *                       type: string
  *                     employeeId:
  *                       type: string
- *                     image:
- *                       type: string
  *       400:
- *         description: Bad Request
+ *         description: Bad Request (e.g., missing userId in steps 2–4)
  *       500:
  *         description: Internal Server Error
  */
@@ -260,7 +238,7 @@ userRouter.patch(
   "/update-userdetails",
   authMiddleware,
   authorization,
-  updateUserDetaisById
+  updateUser
 );
 /**
  *  @openapi
@@ -278,5 +256,111 @@ userRouter.patch(
  *        '404' :
  *          description : Not found
  */
-userRouter.get('/roles',getAllRole)
+userRouter.get('/roles', getAllRole)
+
+/**
+ * @swagger
+ * /api/user-list:
+ *   get:
+ *     summary: Get a list of users
+ *     tags:
+ *       - User Controller
+ *     description: >
+ *       Returns a list of users with optional filters like search and role.  
+ *       You can also disable pagination by setting `pagination=false`.  
+ *       By default, users with the "ADMIN" role are excluded.
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search users by full name, first name, last name, or email.
+ *       - in: query
+ *         name: role
+ *         schema:
+ *           type: string
+ *         description: MongoDB ObjectId of the role to filter users by.
+ *       - in: query
+ *         name: pagination
+ *         schema:
+ *           type: string
+ *           enum: [true, false]
+ *         description: Pass "false" to disable pagination and fetch all project managers.
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Current page number (applies only when pagination is enabled).
+ *       - in: query
+ *         name: itemsPerPage
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of users per page (applies only when pagination is enabled).
+ *       - in: query
+ *         name: sortField
+ *         schema:
+ *           type: string
+ *           example: createdAt
+ *         description: Field to sort by (applies only when pagination is enabled).
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc, ASC, DESC, 1, -1]
+ *         description: Sort order (ascending or descending).
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of users with total count and pagination info
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           firstName:
+ *                             type: string
+ *                           lastName:
+ *                             type: string
+ *                           fullName:
+ *                             type: string
+ *                           email:
+ *                             type: string
+ *                           isDeleted:
+ *                             type: boolean
+ *                           isActive:
+ *                             type: boolean
+ *                           createdAt:
+ *                             type: string
+ *                             format: date-time
+ *                           updatedAt:
+ *                             type: string
+ *                             format: date-time
+ *                           role:
+ *                             type: string
+ *                     totalUser:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized access
+ *       500:
+ *         description: Server error
+ */
+
+userRouter.get('/user-list', authMiddleware, userList)
 export default userRouter;

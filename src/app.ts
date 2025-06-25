@@ -16,7 +16,7 @@ app.use("/api", managerRouter);
 app.use("/api", teamRouter);
 app.use("/api", skillRouter);
 app.use("/api", holidayRouter);
-app.use("/api",designationRouter);
-app.use("/api",departmentRouter);
+app.use("/api", designationRouter);
+app.use("/api", departmentRouter);
 
 export default app;

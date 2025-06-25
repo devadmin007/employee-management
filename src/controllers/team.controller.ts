@@ -48,19 +48,22 @@ export const createTeam = async (req: Request, res: Response) => {
 
 export const getAllTeam = async (req: Request, res: Response) => {
   try {
-   const pagination: any = paginationObject(req.query);
-    const { search } = req.query as { search?: string };
-    const pipeline: any[] = [
-      ...(search
-        ? [
-            {
-              $match: {
-                $or: [{ label: { $regex: search, $options: "i" } }],
-              },
-            },
-          ]
-        : []),
+    const { search, pagination } = req.query as { search?: string; pagination?: string };
+    const isPaginationEnabled = pagination !== "false";
+    const paginationData = paginationObject(req.query);
 
+    const matchStage = search
+      ? [
+        {
+          $match: {
+            $or: [{ label: { $regex: search, $options: "i" } }],
+          },
+        },
+      ]
+      : [];
+
+    const pipeline: any[] = [
+      ...matchStage,
       {
         $lookup: {
           from: "users",
@@ -78,24 +81,29 @@ export const getAllTeam = async (req: Request, res: Response) => {
           managerLastName: "$userData.lastName",
         },
       },
-      {
-        $sort: pagination.sort,
-      },
-      {
-        $limit: pagination.resultPerPage,
-      },
     ];
-    const team = await Team.aggregate(pipeline)
-      .sort(pagination.sort)
-      .skip(pagination.skip)
-      .limit(pagination.resultPerPage);
 
-    if (team.length === 0) {
-      apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND, []);
+    // Only apply sort, skip, limit if pagination is enabled
+    if (isPaginationEnabled) {
+      pipeline.push({ $sort: paginationData.sort || { createdAt: -1 } });
+      pipeline.push({ $skip: paginationData.skip || 0 });
+      pipeline.push({ $limit: paginationData.resultPerPage || 10 });
+    } else {
+      pipeline.push({ $sort: { createdAt: -1 } }); // Still apply sort when no pagination
     }
+
+    const team = await Team.aggregate(pipeline);
+
+    const totalCount = await Team.countDocuments(
+      search ? { label: { $regex: search, $options: "i" } } : {}
+    );
+
     apiResponse(res, StatusCodes.OK, messages.TEAMS_FOUND, {
       team,
-      totalCount: team.length,
+      totalCount,
+      totalPages: isPaginationEnabled
+        ? Math.ceil(totalCount / paginationData.resultPerPage || 10)
+        : 1,
     });
   } catch (error) {
     handleError(res, error);

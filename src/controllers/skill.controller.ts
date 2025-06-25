@@ -33,32 +33,40 @@ export const addSkill = async (req: Request, res: Response) => {
 
 export const getAllSkill = async (req: Request, res: Response) => {
   try {
-    const pagination: any = paginationObject(req.query);
-    const { search } = req.query as {
-      search?: string;
-    };
+    const { search, pagination } = req.query as { search?: string; pagination?: string };
+    const isPaginationEnabled = pagination !== "false";
+    const paginationData: any = paginationObject(req.query);
 
     const query: any = {};
     if (search) {
       query.$or = [{ label: { $regex: search, $options: "i" } }];
     }
 
-    const skill = await Skill.find(query)
-      .sort(pagination.sort)
-      .skip(pagination.skip)
-      .limit(pagination.resultPerPage);
+    // Get total count (for pagination metadata)
+    const totalCount = await Skill.countDocuments(query);
 
-    if (skill.length === 0) {
-      apiResponse(res, StatusCodes.OK, messages.SKILLS_FOUND, []);
+    let skillQuery = Skill.find(query).sort(paginationData.sort || { createdAt: -1 });
+
+    if (isPaginationEnabled) {
+      skillQuery = skillQuery
+        .skip(paginationData.skip || 0)
+        .limit(paginationData.resultPerPage || 10);
     }
+
+    const skill = await skillQuery;
+
     apiResponse(res, StatusCodes.OK, messages.SKILLS_FOUND, {
       skill,
-      totalCount: skill.length,
+      totalCount,
+      totalPages: isPaginationEnabled
+        ? Math.ceil(totalCount / (paginationData.resultPerPage || 10))
+        : 1,
     });
   } catch (error) {
     handleError(res, error);
   }
 };
+
 
 export const getSkillById = async (req: Request, res: Response) => {
   try {

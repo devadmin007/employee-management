@@ -74,10 +74,15 @@ teamRouter.post("/create-team", authMiddleware, authorization, createTeam);
  *            default: 1
  *          description: Page number for pagination
  *        - in: query
- *          name: resultPerPage
+ *          name: itemsPerPage
  *          schema:
  *            type: integer
  *            default: 10
+ *        - in: query
+ *          name: pagination
+ *          schema:
+ *            type: boolean
+ *            default: true
  *          description: Number of results per page
  *        - in: query
  *          name: sortBy
