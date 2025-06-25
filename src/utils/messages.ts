@@ -97,7 +97,8 @@ export const messages = {
   LEAVE_EXIST: 'Leave already exist',
   LEAVE_FOUND: 'Leave fetched successfully',
   LEAVE_NOT_FOUND: 'Leave not found',
-  LEAVE_UPDATED: 'Leave Updated Succesfully'
+  LEAVE_UPDATED: 'Leave Updated Succesfully',
+  LEAVE_DELETED: 'Leave Deleted'
 
 };
 

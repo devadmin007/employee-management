@@ -22,7 +22,7 @@ const userSchema = new Schema<UserDocument>(
     username: {
       type: String,
       required: true,
-      unique: true,
+     
       lowercase: true,
       validate: {
         validator: function (value) {
@@ -34,7 +34,7 @@ const userSchema = new Schema<UserDocument>(
     },
     email: {
       type: String,
-      unique: true,
+    
       lowercase: true,
     },
     personalEmail: {

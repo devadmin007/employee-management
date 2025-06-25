@@ -1,5 +1,5 @@
 import express from "express";
-import { addLeave, getLeaveById, leaveList, updateLeave } from "../controllers/leave.controller";
+import { addLeave, approveLeave, deleteLeave, getLeaveById, leaveList, updateLeave } from "../controllers/leave.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 
 const leaveRouter = express.Router();
@@ -19,7 +19,8 @@ const leaveRouter = express.Router();
  * /api/add-leave:
  *   post:
  *     summary: Create a new leave request
- *     tags: [Leave]
+ *     tags: 
+ *        - Leave Controller
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -56,9 +57,195 @@ const leaveRouter = express.Router();
 
 
 leaveRouter.post('/add-leave',authMiddleware,addLeave);
-leaveRouter.get('/leave/:id',getLeaveById)
-leaveRouter.get('/leave-list',authMiddleware,leaveList);
-leaveRouter.patch('/update-leave/:id',authMiddleware,updateLeave)
 
+/**
+ * @openapi
+ * /api/leave/{id}:
+ *   get:
+ *     summary: Get leave details by ID
+ *     tags:
+ *       - Leave Controller
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Leave ID
+ *     responses:
+ *       200:
+ *         description: Leave found
+ *       400:
+ *         description: Leave not found
+ *       500:
+ *         description: Internal server error
+ */
+
+leaveRouter.get('/leave/:id',getLeaveById)
+
+/**
+ * @openapi
+ * /api/leave-list:
+ *   get:
+ *     summary: Get a paginated list of leave records
+ *     tags:
+ *       - Leave Controller
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filter by leave status (e.g., PENDING, APPROVED)
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date filter (inclusive)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date filter (inclusive)
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Leave list fetched successfully
+ *       500:
+ *         description: Internal server error
+ */
+leaveRouter.get('/leave-list',authMiddleware,leaveList);
+
+/**
+ * @openapi
+ * /api/update-leave/{id}:
+ *   patch:
+ *     summary: Update an existing leave (only employee can update their own)
+ *     tags:
+ *       - Leave Controller
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Leave ID to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               startDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2025-06-25"
+ *               endDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2025-06-27"
+ *               comments:
+ *                 type: string
+ *                 example: "Updated reason"
+ *     responses:
+ *       200:
+ *         description: Leave updated successfully
+ *       403:
+ *         description: Unauthorized to update
+ *       404:
+ *         description: Leave not found
+ *       500:
+ *         description: Internal server error
+ */
+leaveRouter.patch('/update-leave/:id',authMiddleware,updateLeave);
+
+
+
+/**
+ * @openapi
+ * /api/delete-leave/{id}:
+ *   delete:
+ *     summary: Soft delete a leave by ID
+ *     tags:
+ *       - Leave Controller
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Leave ID to be soft deleted
+ *     responses:
+ *       200:
+ *         description: Leave deleted successfully
+ *       400:
+ *         description: Leave not found
+ *       500:
+ *         description: Internal server error
+ */
+
+
+leaveRouter.delete('/delete-leave/:id',authMiddleware,deleteLeave);
+
+
+/**
+ * @openapi
+ * /api/leave-approval/{id}:
+ *   post:
+ *     summary: Approve or reject a leave request
+ *     tags:
+ *       - Leave Controller
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Leave ID to approve or reject
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [APPROVED, REJECTED]
+ *                 example: APPROVED
+ *     responses:
+ *       200:
+ *         description: Leave status updated successfully
+ *       400:
+ *         description: Leave not found or invalid data
+ *       401:
+ *         description: Unauthorized – Bearer token missing or invalid
+ *       500:
+ *         description: Internal server error
+ */
+
+
+leaveRouter.post('/leave-approval/:id',authMiddleware,approveLeave)
 
 export default leaveRouter;

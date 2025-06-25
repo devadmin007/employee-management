@@ -7,8 +7,8 @@ dotenv.config();
 
 const start = async () => {
   await connectDB();
-  createAdminUser();
-  seedRole();
+  // createAdminUser();
+  // seedRole();
 
   console.log(process.env.PORT)
   app.listen(process.env.PORT, () => {
