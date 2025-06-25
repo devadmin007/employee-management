@@ -6,11 +6,13 @@ import { messages } from "../utils/messages";
 import { Holiday } from "../models/holidayList.model";
 import { createHolidaySchema, updateHolidaySchema } from "../utils/zod";
 import { paginationObject } from "../utils/pagination";
+import { date } from "zod";
 
 export const addHoliday = async (req: Request, res: Response) => {
   try {
     const parseData = createHolidaySchema.parse(req.body);
-    const label = parseData.label;
+      const { label, date } = parseData;
+    
 
     const existingHoliday = await Holiday.findOne({ label });
 
@@ -18,11 +20,12 @@ export const addHoliday = async (req: Request, res: Response) => {
       return apiResponse(res, StatusCodes.BAD_REQUEST, messages.HOLIDAY_EXIST);
     }
 
-    const holiday = await Holiday.create({ label });
+    const holiday = await Holiday.create({ label,date });
 
     if (holiday) {
       apiResponse(res, StatusCodes.CREATED, messages.HOLIDAY_CREATED, {
         label,
+        date
       });
     }
   } catch (error) {
@@ -93,11 +96,11 @@ export const updateHolidayById = async (req: Request, res: Response) => {
     if (!existingHoliday) {
       apiResponse(res, StatusCodes.BAD_REQUEST, messages.HOLIDAY_EXIST);
     }
-    const label = parseData.label;
+     const { label, date } = parseData;
 
     const updateHoliday = await Holiday.findByIdAndUpdate(
       holidayId,
-      { label: label },
+      {  label,date },
       { new: true }
     );
     if (!updateHoliday) {

@@ -24,9 +24,9 @@ import { LeaveBalance } from "../models/leaveBalance.models";
 export const createUser = async (req: Request, res: Response) => {
   try {
     const parseResult = registerSchema.parse(req.body);
-    const { username, password } = parseResult;
+    const { email, password } = parseResult;
 
-    const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       apiResponse(res, StatusCodes.BAD_REQUEST, messages.EXISTING_USER);
     }
@@ -45,7 +45,7 @@ export const createUser = async (req: Request, res: Response) => {
     })
     if (user) {
       apiResponse(res, StatusCodes.CREATED, messages.USER_REGISTERED, {
-        username: user?.username,
+        email: user?.email,
         role: user?.role,
         firstName: user?.firstName,
         lastName: user?.lastName,
@@ -59,9 +59,9 @@ export const createUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const parseResult = loginSchema.parse(req.body);
-    const { username, password } = parseResult;
+    const { email, password } = parseResult;
 
-    const user: any = await User.findOne({ username }).populate('role');
+    const user: any = await User.findOne({ email }).populate('role');
     if (!user) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
       return;
@@ -74,7 +74,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     const accessToken = jwt.sign(
       {
-        username: user.username,
+        email: user.email,
         role: user.role,
         id: user._id,
       },
@@ -86,7 +86,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       token: accessToken,
       firstName: user?.firstName,
       lastName: user?.lastName,
-      username: user?.username,
+      email: user?.email,
       role: user?.role?.role
     });
   } catch (error) {
@@ -171,7 +171,7 @@ export const userCreate = async (req: Request, res: Response) => {
         password: hashedPassword,
         image: uploadResult.secure_url,
         employeeId,
-        username: `${firstName.toLowerCase()}_${lastName.toLowerCase()}`,
+        email: `${firstName.toLowerCase()}_${lastName.toLowerCase()}`,
       });
 
       const savedUser = await user.save();
@@ -188,7 +188,7 @@ export const userCreate = async (req: Request, res: Response) => {
 
       return apiResponse(res, StatusCodes.CREATED, "Step 1 completed", {
         userId: savedUser._id,
-        username: savedUser.username,
+        email: savedUser.email,
         employeeId: savedUser.employeeId,
       });
     }

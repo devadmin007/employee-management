@@ -1,40 +1,26 @@
 import { Document, Schema, Types, model } from "mongoose";
 
 export interface User {
-  username: string;
   password: string;
   role: Types.ObjectId;
   email: string;
   image: string;
-  personalEmail: string,
+  personalEmail: string;
   firstName: string;
   lastName: string;
   fullName: string;
-  isActive: boolean
-  isDeleted: boolean
-  employeeId: string
+  isActive: boolean;
+  isDeleted: boolean;
+  employeeId: string;
 }
 
-export interface UserDocument extends User, Document { }
+export interface UserDocument extends User, Document {}
 
 const userSchema = new Schema<UserDocument>(
   {
-    username: {
-      type: String,
-      required: true,
-     
-      lowercase: true,
-      validate: {
-        validator: function (value) {
-          return /^[a-zA-Z0-9_-]+$/.test(value);
-        },
-        message:
-          "Username must contain only alphanumeric characters, hyphens, or underscores.",
-      },
-    },
     email: {
       type: String,
-    
+
       lowercase: true,
     },
     personalEmail: {
@@ -57,10 +43,10 @@ const userSchema = new Schema<UserDocument>(
       type: String,
     },
     image: {
-      type: String
+      type: String,
     },
     role: {
-      ref: 'Role',
+      ref: "Role",
       type: Schema.Types.ObjectId,
       required: true,
     },
