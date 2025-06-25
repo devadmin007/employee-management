@@ -71,6 +71,7 @@ const userSchema = new Schema<UserDocument>(
   {
     timestamps: true,
     versionKey: false,
+    autoIndex: false,
   }
 );
 

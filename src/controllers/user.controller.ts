@@ -17,7 +17,6 @@ import { UserDetails } from "../models/userDetails.model";
 import { Types } from "mongoose";
 import { Cloudinary } from "../utils/cloudinary";
 import { Role } from "../models/role.model";
-import mongoose from "mongoose";
 import { paginationObject } from "../utils/pagination";
 import { LeaveBalance } from "../models/leaveBalance.models";
 
@@ -141,11 +140,13 @@ export const userCreate = async (req: Request, res: Response) => {
       const {
         firstName,
         lastName,
+        email, personalEmail,
         phoneNumber,
         personalNumber,
         currentAddress,
         permenentAddress,
         role,
+        dateOfBirth
       } = req.body;
 
       if (!req.file) {
@@ -157,7 +158,18 @@ export const userCreate = async (req: Request, res: Response) => {
         file,
         "employee_management"
       );
-
+      let parsePermententAddress: any
+      if (typeof permenentAddress === "string") {
+        parsePermententAddress = JSON.parse(permenentAddress);
+      } else {
+        parsePermententAddress = permenentAddress;
+      }
+      let parseCurrentAddress: any;
+      if (typeof currentAddress === "string") {
+        parseCurrentAddress = JSON.parse(currentAddress);
+      } else {
+        parseCurrentAddress = currentAddress;
+      }
       const rawPassword = generatePassword();
       const hashedPassword = await bcrypt.hash(rawPassword, 10);
       const employeeId = await generateEmployeeId();
@@ -166,6 +178,7 @@ export const userCreate = async (req: Request, res: Response) => {
         firstName,
         lastName,
         role,
+        email, personalEmail,
         password: hashedPassword,
         image: uploadResult.secure_url,
         employeeId,
@@ -178,8 +191,9 @@ export const userCreate = async (req: Request, res: Response) => {
         userId: savedUser._id,
         phoneNumber,
         personalNumber,
-        currentAddress,
-        permenentAddress,
+        currentAddress: parseCurrentAddress,
+        permenentAddress: parsePermententAddress,
+        dateOfBirth
       });
 
       await userDetails.save();
