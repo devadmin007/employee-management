@@ -13,14 +13,13 @@ const leaveRouter = express.Router();
  *       scheme: bearer
  *       bearerFormat: JWT
  */
-
 /**
  * @openapi
  * /api/add-leave:
  *   post:
  *     summary: Create a new leave request
  *     tags: 
- *        - Leave Controller
+ *       - Leave Controller
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -36,9 +35,6 @@ const leaveRouter = express.Router();
  *               - status
  *               - comments
  *             properties:
- *               leave_type:
- *                 type: string
- *                 enum: [FIRST_HALF, SECOND_HALF, FULL_DAY]
  *               startDate:
  *                 type: string
  *                 format: date
@@ -50,13 +46,50 @@ const leaveRouter = express.Router();
  *                 enum: [PENDING, APPROVED, REJECT]
  *               comments:
  *                 type: string
+ *               start_leave_type:
+ *                 type: string
+ *                 enum: [FULL_DAY]
+ *                 nullable: true
+ *               start_leave_half_type:
+ *                 type: string
+ *                 enum: [FIRST_HALF, SECOND_HALF]
+ *                 nullable: true
+ *               end_leave_type:
+ *                 type: string
+ *                 enum: [FULL_DAY]
+ *                 nullable: true
+ *               end_leave_half_type:
+ *                 type: string
+ *                 enum: [FIRST_HALF, SECOND_HALF]
+ *                 nullable: true
+ *               totalDays:
+ *                 type: number
+ *                 format: float
+ *                 nullable: true
  *     responses:
  *       201:
  *         description: Leave successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Leave added successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     leave:
+ *                       $ref: '#/components/schemas/Leave'
+ *       400:
+ *         description: Leave already exists or bad request
  */
 
-
-leaveRouter.post('/add-leave',authMiddleware,addLeave);
+leaveRouter.post('/add-leave', authMiddleware, addLeave);
 
 /**
  * @openapi
@@ -81,7 +114,7 @@ leaveRouter.post('/add-leave',authMiddleware,addLeave);
  *         description: Internal server error
  */
 
-leaveRouter.get('/leave/:id',getLeaveById)
+leaveRouter.get('/leave/:id', getLeaveById)
 
 /**
  * @openapi
@@ -126,7 +159,7 @@ leaveRouter.get('/leave/:id',getLeaveById)
  *       500:
  *         description: Internal server error
  */
-leaveRouter.get('/leave-list',authMiddleware,leaveList);
+leaveRouter.get('/leave-list', authMiddleware, leaveList);
 
 /**
  * @openapi
@@ -172,7 +205,7 @@ leaveRouter.get('/leave-list',authMiddleware,leaveList);
  *       500:
  *         description: Internal server error
  */
-leaveRouter.patch('/update-leave/:id',authMiddleware,updateLeave);
+leaveRouter.patch('/update-leave/:id', authMiddleware, updateLeave);
 
 
 
@@ -202,7 +235,7 @@ leaveRouter.patch('/update-leave/:id',authMiddleware,updateLeave);
  */
 
 
-leaveRouter.delete('/delete-leave/:id',authMiddleware,deleteLeave);
+leaveRouter.delete('/delete-leave/:id', authMiddleware, deleteLeave);
 
 
 /**
@@ -246,6 +279,6 @@ leaveRouter.delete('/delete-leave/:id',authMiddleware,deleteLeave);
  */
 
 
-leaveRouter.post('/leave-approval/:id',authMiddleware,approveLeave)
+leaveRouter.post('/leave-approval/:id', authMiddleware, approveLeave)
 
 export default leaveRouter;
