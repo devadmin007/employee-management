@@ -74,13 +74,13 @@ departmentRouter.post(
  *          schema:
  *            type: integer
  *            default: 1
- *          description: Page number for pagination
+ *          description: Page number for pagination (used only if pagination is true)
  *        - in: query
- *          name: resultPerPage
+ *          name: itemsPerPage
  *          schema:
  *            type: integer
  *            default: 10
- *          description: Number of departments per page
+ *          description: Number of departments per page (used only if pagination is true)
  *        - in: query
  *          name: sortBy
  *          schema:
@@ -99,10 +99,17 @@ departmentRouter.post(
  *          schema:
  *            type: string
  *            example: IT Department
- *          description: Search term to filter department by name
+ *          description: Search term to filter departments by name
+ *        - in: query
+ *          name: pagination
+ *          schema:
+ *            type: string
+ *            enum: [true, false]
+ *            default: true
+ *          description: Enable or disable pagination
  *      responses:
  *        '200':
- *          description: Department fetched successfully
+ *          description: Departments fetched successfully
  *          content:
  *            application/json:
  *              schema:
@@ -117,18 +124,20 @@ departmentRouter.post(
  *                  data:
  *                    type: object
  *                    properties:
- *                      department:
+ *                      departments:
  *                        type: array
  *                        items:
  *                          type: object
  *                          properties:
  *                            label:
  *                              type: string
+ *                              example: IT Department
  *                            value:
  *                              type: string
- *                      totalcount:
+ *                              example: it_dept_01
+ *                      totalCount:
  *                        type: integer
- *                        example: 10
+ *                        example: 42
  *        '404':
  *          description: No department found
  *        '401':

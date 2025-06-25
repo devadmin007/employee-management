@@ -7,6 +7,7 @@ import { Designation } from "../models/designation.model";
 import { createDesignationSchema, updateDesignationSchema } from "../utils/zod";
 import { paginationObject } from "../utils/pagination";
 
+
 export const addDesignation = async (req: Request, res: Response) => {
   try {
     const parseData = createDesignationSchema.parse(req.body);
@@ -36,9 +37,9 @@ export const addDesignation = async (req: Request, res: Response) => {
 
 export const getAlldesignations = async (req: Request, res: Response) => {
   try {
-const pagination: any = paginationObject(req.query);
-    const { search } = req.query as {
+    const { search, pagination } = req.query as {
       search?: string;
+      pagination?: string;
     };
 
     const query: any = {};
@@ -46,18 +47,31 @@ const pagination: any = paginationObject(req.query);
       query.$or = [{ label: { $regex: search, $options: "i" } }];
     }
 
-    const designation = await Designation.find(query)
-      .sort(pagination.sort)
-      .skip(pagination.skip)
-      .limit(pagination.resultPerPage);
+    const totalCount = await Designation.countDocuments(query);
 
-    if (designation.length === 0) {
-      apiResponse(res, StatusCodes.OK, messages.DESIGNATION_FOUND, []);
+    let designation;
+    let totalPages = 1;
+
+    if (pagination === "false") {
+      designation = await Designation.find(query).sort({ createdAt: -1 });
+    } else {
+      const paginationConfig: any = paginationObject(req.query);
+      designation = await Designation.find(query)
+        .sort(paginationConfig.sort)
+        .skip(paginationConfig.skip)
+        .limit(paginationConfig.resultPerPage);
+
+      totalPages = Math.ceil(totalCount / paginationConfig.resultPerPage);
     }
 
-    apiResponse(res, StatusCodes.OK, messages.DESIGNATION_FOUND, {
+    if (designation.length === 0) {
+      return apiResponse(res, StatusCodes.OK, messages.DESIGNATION_FOUND, []);
+    }
+
+    return apiResponse(res, StatusCodes.OK, messages.DESIGNATION_FOUND, {
       designations: designation,
-      totalcount: designation.length,
+      totalCount,
+      totalPages,
     });
   } catch (error) {
     handleError(res, error);
