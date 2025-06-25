@@ -34,11 +34,13 @@ export const addDepartment = async (req: Request, res: Response) => {
   }
 };
 
+
+
 export const getAllDepartments = async (req: Request, res: Response) => {
   try {
-    const pagination: any = paginationObject(req.query);
-    const { search } = req.query as {
+    const { search, pagination } = req.query as {
       search?: string;
+      pagination?: string; 
     };
 
     const query: any = {};
@@ -46,23 +48,40 @@ export const getAllDepartments = async (req: Request, res: Response) => {
       query.$or = [{ label: { $regex: search, $options: "i" } }];
     }
 
-    const department = await Department.find(query)
-      .sort(pagination.sort)
-      .skip(pagination.skip)
-      .limit(pagination.resultPerPage);
+    const totalCount = await Department.countDocuments(query);
 
-    if (Department.length === 0) {
-      apiResponse(res, StatusCodes.OK, messages.DEPARTMENT_FOUND, []);
+    let departments;
+    let totalPages = 1;
+
+    if (pagination === "false") {
+     
+      departments = await Department.find(query).sort({ createdAt: -1 });
+    } else {
+
+      const paginationConfig: any = paginationObject(req.query);
+      departments = await Department.find(query)
+        .sort(paginationConfig.sort)
+        .skip(paginationConfig.skip)
+        .limit(paginationConfig.resultPerPage);
+
+    
+      totalPages = Math.ceil(totalCount / paginationConfig.resultPerPage);
     }
 
-    apiResponse(res, StatusCodes.OK, messages.DEPARTMENT_FOUND, {
-      Department: department,
-      totalcount: Department.length,
+    if (departments.length === 0) {
+      return apiResponse(res, StatusCodes.OK, messages.DEPARTMENT_FOUND, []);
+    }
+
+    return apiResponse(res, StatusCodes.OK, messages.DEPARTMENT_FOUND, {
+      departments,
+      totalCount,
+      totalPages,
     });
   } catch (error) {
     handleError(res, error);
   }
 };
+
 
 export const getDepartment = async (req: Request, res: Response) => {
   try {

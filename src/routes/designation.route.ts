@@ -74,13 +74,13 @@ designationRouter.post(
  *          schema:
  *            type: integer
  *            default: 1
- *          description: Page number for pagination
+ *          description: Page number for pagination (used only if pagination=true)
  *        - in: query
- *          name: resultPerPage
+ *          name: itemsPerPage
  *          schema:
  *            type: integer
  *            default: 10
- *          description: Number of designations per page
+ *          description: Number of designations per page (used only if pagination=true)
  *        - in: query
  *          name: sortBy
  *          schema:
@@ -99,7 +99,14 @@ designationRouter.post(
  *          schema:
  *            type: string
  *            example: manager
- *          description: Search term to filter designations by name
+ *          description: Search term to filter designations by label
+ *        - in: query
+ *          name: pagination
+ *          schema:
+ *            type: string
+ *            enum: [true, false]
+ *            default: true
+ *          description: Set to "false" to disable pagination and fetch all results
  *      responses:
  *        '200':
  *          description: Designations fetched successfully
@@ -124,11 +131,16 @@ designationRouter.post(
  *                          properties:
  *                            label:
  *                              type: string
+ *                              example: Manager
  *                            value:
  *                              type: string
- *                      totalcount:
+ *                              example: manager
+ *                      totalCount:
  *                        type: integer
- *                        example: 10
+ *                        example: 15
+ *                      totalPages:
+ *                        type: integer
+ *                        example: 2
  *        '404':
  *          description: No designations found
  *        '401':

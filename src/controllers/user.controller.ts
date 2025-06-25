@@ -19,6 +19,7 @@ import { Cloudinary } from "../utils/cloudinary";
 import { Role } from "../models/role.model";
 import mongoose from "mongoose";
 import { paginationObject } from "../utils/pagination";
+import { LeaveBalance } from "../models/leaveBalance.models";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -38,12 +39,16 @@ export const createUser = async (req: Request, res: Response) => {
     };
 
     const user = await User.create(finalData);
+    await LeaveBalance.create({
+      leave: 12,
+      employeeId: user?._id
+    })
     if (user) {
       apiResponse(res, StatusCodes.CREATED, messages.USER_REGISTERED, {
-        username: user.username,
-        role: user.role,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        username: user?.username,
+        role: user?.role,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
       });
     }
   } catch (error) {

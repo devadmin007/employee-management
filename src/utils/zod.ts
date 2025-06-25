@@ -1,4 +1,5 @@
 import { z } from "zod";
+import mongoose, { Types } from "mongoose";
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 export const registerSchema = z.object({
   username: z
@@ -142,3 +143,33 @@ export const createUserSchema = z.object({
 });
 
 export const updateUserSchema = createUserSchema.partial();
+
+//LEAVE ZOD
+
+
+
+const objectId = z
+  .string()
+  .min(1, "ObjectId is required")
+  .refine((val) => Types.ObjectId.isValid(val), {
+    message: "Invalid ObjectId",
+  });
+
+export const leaveSchema = z.object({
+  leave_type: z.enum(["FIRST_HALF", "SECOND_HALF", "FULL_DAY"], {
+    required_error: "leave type is required",
+  }),
+  startDate: z.coerce.date({
+    required_error: "startDate is required",
+  }),
+  endDate: z.coerce.date({
+    required_error: "endDate is required",
+  }),
+  status: z.enum(["PENDING", "APPROVED", "REJECT"], {
+    required_error: "status is required",
+  }),
+  comments: z.string().min(1, "comments are required"),
+  approveId: objectId.optional(),
+ 
+});
+
