@@ -32,7 +32,7 @@ export const addLeave = async (req: any, res: Response) => {
     }
     if (!existingUser) {
      const roles = await Role.findOne({ role: "ADMIN" });
-      console.log(roles);
+      
       existingUser = await User.findOne({ role: roles?._id });
     }
 
