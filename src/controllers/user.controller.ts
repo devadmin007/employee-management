@@ -596,7 +596,7 @@ export const userList = async (req: Request, res: Response) => {
 
     apiResponse(res, StatusCodes.OK, messages.USER_LIST, {
       user,
-      totalUser,
+      totalCount: totalUser,
       totalPages,
     });
   } catch (error) {
