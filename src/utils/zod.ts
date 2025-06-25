@@ -2,13 +2,7 @@ import { z } from "zod";
 import mongoose, { Types } from "mongoose";
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 export const registerSchema = z.object({
-  username: z
-    .string()
-    .min(1, "Username is required")
-    .refine((value) => /^[a-zA-Z0-9_-]+$/.test(value), {
-      message:
-        "Username must contain only alphanumeric characters, underscores, or hyphens",
-    }),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
   firstName: z.string().min(1, "Firstname is required"),
   lastName: z.string().min(1, "Last name is required"),
   password: z.string().min(1, "Password Must be required"),
@@ -16,13 +10,7 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  username: z
-    .string()
-    .min(1, "Username is required")
-    .refine((value) => /^[a-zA-Z0-9_-]+$/.test(value), {
-      message:
-        "Username must contain only alphanumeric characters, underscores, or hyphens",
-    }),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
   password: z.string().min(1, "Password Must be required"),
 });
 
@@ -65,12 +53,13 @@ export const updateSkillSchema = skillZodSchema;
 
 export const createHolidaySchema = z.object({
   label: z.string().min(1, "Holiday is required"),
+  date: z.string().min(1, 'date is required')
 });
 
 export const updateHolidaySchema = createHolidaySchema;
 
 export const createDesignationSchema = z.object({
-  label: z.string().min(1, "Holiday is required"),
+  label: z.string().min(1, "Designation is required"),
 });
 
 export const updateDesignationSchema = createDesignationSchema;
@@ -145,8 +134,6 @@ export const createUserSchema = z.object({
 export const updateUserSchema = createUserSchema.partial();
 
 //LEAVE ZOD
-
-
 
 const objectId = z
   .string()

@@ -28,32 +28,37 @@ const holidayRouter = express.Router();
  *      tags:
  *        - Holiday Controller
  *      security:
- *       - bearerAuth: []
- *      summary : Add Holiday
- *      requestBody :
- *        required : true
- *        content :
+ *        - bearerAuth: []
+ *      summary: Add Holiday
+ *      requestBody:
+ *        required: true
+ *        content:
  *          application/json:
  *            schema:
  *              type: object
- *              required :
+ *              required:
  *                - label
- *              properties :
- *                label :
- *                  type : string
- *
- *
- *      responses :
+ *                - date
+ *              properties:
+ *                label:
+ *                  type: string
+ *                  example: "Independence Day"
+ *                date:
+ *                  type: string
+ *                  format: date
+ *                  example: "2025-08-15"
+ *      responses:
  *        '201':
- *          description : Created
- *        '400' :
- *          descrription : Bad request
- *        '404' :
- *          description : Not found
+ *          description: Created
+ *        '400':
+ *          description: Bad request
+ *        '404':
+ *          description: Not found
  */
 
-holidayRouter.post("/add-holiday", authMiddleware, authorization, addHoliday);
 
+// holidayRouter.post("/add-holiday", authMiddleware, authorization, addHoliday);
+holidayRouter.post("/add-holiday",  addHoliday);
 /**
  *  @openapi
  *  /api/holidays:
