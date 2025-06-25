@@ -71,7 +71,7 @@ holidayRouter.post("/add-holiday", authMiddleware, authorization, addHoliday);
  *            default: 1
  *          description: Page number for pagination
  *        - in: query
- *          name: resultPerPage
+ *          name: itemsPerPage
  *          schema:
  *            type: integer
  *            default: 10

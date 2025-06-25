@@ -1,3 +1,4 @@
+import moment from "moment";
 import { Request, Response } from "express";
 import { Leave } from "../models/leave.model";
 
@@ -10,6 +11,7 @@ import { StatusCodes } from "http-status-codes";
 import { UserDetails } from "../models/userDetails.model";
 import { Role } from "../models/role.model";
 import { paginationObject } from "../utils/pagination";
+import { LeaveBalance } from "../models/leaveBalance.models";
 
 export const addLeave = async (req: any, res: Response) => {
   try {
@@ -29,8 +31,11 @@ export const addLeave = async (req: any, res: Response) => {
       existingUser = await User.findOne({ role: roles?._id });
     }
     if (!existingUser) {
-      apiResponse(res, StatusCodes.BAD_REQUEST, messages.USER_NOT_FOUND);
+     const roles = await Role.findOne({ role: "ADMIN" });
+      console.log(roles);
+      existingUser = await User.findOne({ role: roles?._id });
     }
+
     const existingLeave = await Leave.findOne({
       employeeId: userId,
       startDate: { $lte: endDate },
@@ -46,7 +51,7 @@ export const addLeave = async (req: any, res: Response) => {
       employeeId: userId,
       startDate: startDate,
       endDate: endDate,
-      comment: parseData.comments,
+      comments: parseData.comments,
       status: parseData.status,
       leave_type: parseData.leave_type,
       approveId: existingUser?.managerId || existingUser?._id,
@@ -189,7 +194,24 @@ export const updateLeave = async (req: any, res: Response) => {
     }
 
     const { startDate, endDate, comments } = req.body;
+    if (startDate && moment(startDate).isBefore(moment(), "day")) {
+      return apiResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Start date cannot be in the past"
+      );
+    }
 
+    if (
+      endDate &&
+      moment(endDate).isBefore(moment(startDate || leave.startDate), "day")
+    ) {
+      return apiResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "End date cannot be before start date"
+      );
+    }
     if (startDate && !isNaN(Date.parse(startDate))) {
       leave.startDate = new Date(startDate);
     }
@@ -199,10 +221,85 @@ export const updateLeave = async (req: any, res: Response) => {
     if (comments !== undefined) {
       leave.comments = comments;
     }
-
+    if (startDate) leave.startDate = startDate;
+    if (endDate) leave.endDate = endDate;
+    if (comments !== undefined) leave.comments = comments;
     await leave.save();
 
     return apiResponse(res, StatusCodes.OK, messages.LEAVE_UPDATED, { leave });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+export const deleteLeave = async (req: Request, res: Response) => {
+  try {
+    const leaveId = req.params.id;
+    const existingLeave = await Leave.findOneAndUpdate(
+      { _id: leaveId },
+      { isDeleted: true },
+      { new: true }
+    );
+    if (existingLeave) {
+      return apiResponse(res, StatusCodes.OK, messages.LEAVE_DELETED);
+    } else {
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_NOT_FOUND);
+    }
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+
+export const approveLeave = async (req: Request, res: Response) => {
+  try {
+    const leaveId = req.params.id;
+    const userId = req.userInfo?.id;
+    const { status } = req.body;
+
+    const existingLeave = await Leave.findById(leaveId);
+    if (!existingLeave) {
+      return apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_NOT_FOUND);
+    }
+
+
+    const approvedLeave = await Leave.findOneAndUpdate(
+      { _id: leaveId },
+      { status: status, approveById: userId },
+      { new: true }
+    );
+
+
+    if (status === "APPROVED") {
+      let leaveDays = 0;
+
+      const start = moment(existingLeave.startDate).startOf("day");
+      const end = moment(existingLeave.endDate).startOf("day");
+
+      if (existingLeave.leave_type === "FULL_DAY") {
+        leaveDays = end.diff(start, "days") + 1; 
+      } else if (
+        existingLeave.leave_type === "FIRST_HALF" ||
+        existingLeave.leave_type === "SECOND_HALF"
+      ) {
+        leaveDays = 0.5;
+      }
+
+
+      const leaveBalance = await LeaveBalance.findOne({
+        employeeId: existingLeave.employeeId,
+        isDeleted: false,
+      });
+
+      if (!leaveBalance) {
+        return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
+      }
+
+      leaveBalance.leave = Math.max(leaveBalance.leave - leaveDays, 0); 
+      await leaveBalance.save();
+    }
+
+    return apiResponse(res, StatusCodes.OK, "Leave status updated", { leave: approvedLeave });
   } catch (error) {
     handleError(res, error);
   }
