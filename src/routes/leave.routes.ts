@@ -153,6 +153,10 @@ leaveRouter.get('/leave/:id', getLeaveById)
  *           type: integer
  *           default: 10
  *         description: Number of items per page
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Leave list fetched successfully

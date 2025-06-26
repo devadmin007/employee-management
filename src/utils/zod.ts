@@ -156,10 +156,7 @@ export const leaveSchema = z
     }),
     end_leave_type: z.enum(["FULL_DAY", "FIRST_HALF", "SECOND_HALF"]).optional(),
 
-    totalDays: z.number().min(1, "totalDays is required"),
-    status: z.enum(["PENDING", "APPROVED", "REJECT"], {
-      required_error: "status is required",
-    }),
+
     comments: z.string().min(1, "comments are required"),
     approveId: objectId.optional(),
   })

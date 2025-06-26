@@ -26,7 +26,6 @@ export const addLeave = async (req: any, res: Response) => {
       start_leave_type,
       // end_leave_half_type,
       end_leave_type,
-      totalDays,
     } = parseData;
 
     let existingUser: any;
@@ -55,13 +54,20 @@ export const addLeave = async (req: any, res: Response) => {
     if (existingLeave) {
       return apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_EXIST);
     }
+    let totalDays = moment(endDate).diff(moment(startDate), "days") + 1;
 
+    if (start_leave_type !== "FULL_DAY") {
+      totalDays -= 0.5;
+    }
+    if (end_leave_type !== "FULL_DAY") {
+      totalDays -= 0.5;
+    }
     const leave = await Leave.create({
       employeeId: userId,
       startDate: startDate,
       endDate: endDate,
       comments: parseData.comments,
-      status: parseData.status,
+      status: "PENDING",
       approveId: existingUser?.managerId || existingUser?._id,
       // start_leave_half_type,
       start_leave_type,
@@ -88,6 +94,12 @@ export const getLeaveById = async (req: Request, res: Response) => {
       .populate({
         path: "approveId",
         select: "firstName lastName -_id",
+      }).populate({
+        path: "approveById",
+        select: "firstName lastName -_id",
+      }).populate({
+        path: "employeeID",
+        select: "firstName lastName -_id",
       })
       .lean();
 
@@ -99,6 +111,8 @@ export const getLeaveById = async (req: Request, res: Response) => {
     handleError(res, error);
   }
 };
+
+
 export const leaveList = async (req: any, res: Response) => {
   try {
     const pagination = paginationObject(req.query);
@@ -133,8 +147,18 @@ export const leaveList = async (req: any, res: Response) => {
       match.endDate.$lte = new Date(endDate as string);
     }
 
+    const { search } = req.query;
+
     const pipeline: any = [
       { $match: match },
+      {
+        $lookup: {
+          from: "users",
+          localField: "employeeId",
+          foreignField: "_id",
+          as: "employeeId",
+        },
+      },
       {
         $lookup: {
           from: "users",
@@ -144,28 +168,38 @@ export const leaveList = async (req: any, res: Response) => {
         },
       },
       {
-        $lookup: {
-          from: "users",
-          localField: "approveById",
-          foreignField: "_id",
-          as: "approveById",
-        },
+        $unwind: { path: "$employeeId", preserveNullAndEmptyArrays: true },
       },
       {
-        $unwind: {
-          path: "$approveId",
-          preserveNullAndEmptyArrays: true,
-        },
+        $unwind: { path: "$approveId", preserveNullAndEmptyArrays: true },
       },
       {
-        $unwind: {
-          path: "$approveById",
-          preserveNullAndEmptyArrays: true,
+        $addFields: {
+          employeefullName: {
+            $concat: ["$employeeId.firstName", " ", "$employeeId.lastName"]
+          },
+          approverfullName: {
+            $concat: ["$approveId.firstName", " ", "$approveId.lastName"]
+          },
         },
       },
+    ];
+
+    // Add search filter on computed full names
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { employeefullName: { $regex: search, $options: "i" } },
+            { approverfullName: { $regex: search, $options: "i" } },
+          ],
+        },
+      });
+    }
+
+    pipeline.push(
       {
         $project: {
-          employeeId: 1,
           startDate: 1,
           endDate: 1,
           status: 1,
@@ -179,16 +213,14 @@ export const leaveList = async (req: any, res: Response) => {
           end_leave_half_type: 1,
           end_leave_type: 1,
           totalDays: 1,
-          "approveId.firstName": 1,
-          "approveId.lastName": 1,
-          "approveById.firstName": 1,
-          "approveById.lastName": 1,
+          approverfullName: 1,
+          employeefullName: 1,
         },
       },
       { $sort: sort },
       { $skip: skip },
-      { $limit: resultPerPage },
-    ];
+      { $limit: resultPerPage }
+    );
 
     const [leaves, totalLeaves] = await Promise.all([
       Leave.aggregate(pipeline),
@@ -227,7 +259,6 @@ export const updateLeave = async (req: any, res: Response) => {
       start_leave_type,
       // end_leave_half_type,
       end_leave_type,
-      totalDays,
     } = req.body;
     if (startDate && moment(startDate).isBefore(moment(), "day")) {
       return apiResponse(
@@ -263,7 +294,17 @@ export const updateLeave = async (req: any, res: Response) => {
     // if (start_leave_half_type) leave.start_leave_half_type = start_leave_half_type;
     if (end_leave_type) leave.end_leave_type = end_leave_type;
     // if (end_leave_half_type) leave.end_leave_half_type = end_leave_half_type;
-    if (totalDays) leave.totalDays = totalDays;
+
+    let totalDays = moment(endDate).diff(moment(startDate), "days") + 1;
+
+    if (start_leave_type !== "FULL_DAY") {
+      totalDays -= 0.5;
+    }
+    if (end_leave_type !== "FULL_DAY") {
+      totalDays -= 0.5;
+    }
+
+    leave.totalDays = totalDays;
     await leave.save();
 
     return apiResponse(res, StatusCodes.OK, messages.LEAVE_UPDATED, { leave });
