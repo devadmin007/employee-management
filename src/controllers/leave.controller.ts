@@ -12,6 +12,7 @@ import { UserDetails } from "../models/userDetails.model";
 import { Role } from "../models/role.model";
 import { paginationObject } from "../utils/pagination";
 import { LeaveBalance } from "../models/leaveBalance.models";
+import mongoose from "mongoose";
 
 export const addLeave = async (req: any, res: Response) => {
   try {
@@ -32,11 +33,12 @@ export const addLeave = async (req: any, res: Response) => {
 
     if (req.userInfo?.role?.role === "EMPLOYEE") {
       existingUser = await UserDetails.findOne({ userId: userId });
-    } else if (req.userInfo?.role.role === "PROJECT_MANAGER") {
+    } else if (req.userInfo?.role.role === "PROJECT_MANAGER" || req.userInfo?.role.role === "HR") {
       const roles = await Role.findOne({ role: "ADMIN" });
       console.log(roles);
       existingUser = await User.findOne({ role: roles?._id });
     }
+
     if (!existingUser) {
       const roles = await Role.findOne({ role: "ADMIN" });
 
@@ -97,15 +99,32 @@ export const getLeaveById = async (req: Request, res: Response) => {
     handleError(res, error);
   }
 };
-export const leaveList = async (req: Request, res: Response) => {
+export const leaveList = async (req: any, res: Response) => {
   try {
     const pagination = paginationObject(req.query);
 
-    const { skip, resultPerPage, sort } = pagination;
+    const { skip, resultPerPage, sort, } = pagination;
 
-    const { status, startDate, endDate } = req.query;
+    const { status, startDate, endDate, filter } = req.query;
 
     const match: any = { isDeleted: false };
+    if (req.userInfo?.role?.role === "EMPLOYEE") {
+      match.employeeId = new mongoose.Types.ObjectId(req.userInfo?.id);
+    }
+    if (req.userInfo?.role?.role === 'PROJECT_MANAGER') {
+      if (filter === "REQUESTED") {
+        match.approveId = new mongoose.Types.ObjectId(req.userInfo?.id);
+      } else {
+        match.employeeId = new mongoose.Types.ObjectId(req.userInfo?.id);
+      }
+    }
+    if (req.userInfo?.role?.role === "HR") {
+      if (filter === "REQUESTED") {
+        match.approveId = new mongoose.Types.ObjectId(req.userInfo?.id);
+      } else {
+        match.employeeId = new mongoose.Types.ObjectId(req.userInfo?.id);
+      }
+    }
 
     if (status) match.status = status;
     if (startDate) match.startDate = { $gte: new Date(startDate as string) };

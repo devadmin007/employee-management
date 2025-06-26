@@ -122,35 +122,44 @@ leaveRouter.get('/leave/:id', getLeaveById)
  *         name: status
  *         schema:
  *           type: string
- *         description: Filter by leave status (e.g., PENDING, APPROVED)
+ *         description: Filter by leave status (e.g., PENDING, APPROVED, REJECTED)
  *       - in: query
  *         name: startDate
  *         schema:
  *           type: string
  *           format: date
- *         description: Start date filter (inclusive)
+ *         description: Filter leave records starting on or after this date (inclusive)
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
- *         description: End date filter (inclusive)
+ *         description: Filter leave records ending on or before this date (inclusive)
+ *       - in: query
+ *         name: filter
+ *         schema:
+ *           type: string
+ *           enum: [REQUESTED]
+ *         description: Used by HR or PROJECT_MANAGER to filter requested leaves awaiting their approval
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
  *           default: 1
+ *         description: Current page number
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
  *           default: 10
+ *         description: Number of items per page
  *     responses:
  *       200:
  *         description: Leave list fetched successfully
  *       500:
  *         description: Internal server error
  */
+
 leaveRouter.get('/leave-list', authMiddleware, leaveList);
 /**
  * @openapi
