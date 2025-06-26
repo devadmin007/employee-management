@@ -214,18 +214,14 @@ export const leaveList = async (req: any, res: Response) => {
     pipeline.push(
       {
         $project: {
-          startDate: 1,
-          endDate: 1,
+          date: 1,
           status: 1,
           comments: 1,
           isActive: 1,
           isDeleted: 1,
           createdAt: 1,
           updatedAt: 1,
-          start_leave_half_type: 1,
-          start_leave_type: 1,
-          end_leave_half_type: 1,
-          end_leave_type: 1,
+          leave_type: 1,
           totalDays: 1,
           approverfullName: 1,
           employeefullName: 1,
