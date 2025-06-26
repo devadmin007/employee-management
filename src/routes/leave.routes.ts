@@ -48,19 +48,11 @@ const leaveRouter = express.Router();
  *                 type: string
  *               start_leave_type:
  *                 type: string
- *                 enum: [FULL_DAY]
- *                 nullable: true
- *               start_leave_half_type:
- *                 type: string
- *                 enum: [FIRST_HALF, SECOND_HALF]
+ *                 enum: [FULL_DAY,FIRST_HALF, SECOND_HALF]
  *                 nullable: true
  *               end_leave_type:
  *                 type: string
- *                 enum: [FULL_DAY]
- *                 nullable: true
- *               end_leave_half_type:
- *                 type: string
- *                 enum: [FIRST_HALF, SECOND_HALF]
+ *                 enum: [FULL_DAY,FIRST_HALF, SECOND_HALF]
  *                 nullable: true
  *               totalDays:
  *                 type: number
@@ -160,7 +152,6 @@ leaveRouter.get('/leave/:id', getLeaveById)
  *         description: Internal server error
  */
 leaveRouter.get('/leave-list', authMiddleware, leaveList);
-
 /**
  * @openapi
  * /api/update-leave/{id}:
@@ -194,10 +185,39 @@ leaveRouter.get('/leave-list', authMiddleware, leaveList);
  *                 example: "2025-06-27"
  *               comments:
  *                 type: string
- *                 example: "Updated reason"
+ *                 example: "Updated reason for leave"
+ *               start_leave_type:
+ *                 type: string
+ *                 enum: [FULL_DAY, FIRST_HALF, SECOND_HALF]
+ *                 example: "FULL_DAY"
+ *               end_leave_type:
+ *                 type: string
+ *                 enum: [FULL_DAY, FIRST_HALF, SECOND_HALF]
+ *                 example: "FULL_DAY"
+ *               totalDays:
+ *                 type: number
+ *                 example: 2.5
  *     responses:
  *       200:
  *         description: Leave updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Leave updated successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     leave:
+ *                       $ref: '#/components/schemas/Leave'
+ *       400:
+ *         description: Invalid date input
  *       403:
  *         description: Unauthorized to update
  *       404:

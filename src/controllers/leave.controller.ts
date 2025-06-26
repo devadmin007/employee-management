@@ -13,7 +13,6 @@ import { Role } from "../models/role.model";
 import { paginationObject } from "../utils/pagination";
 import { LeaveBalance } from "../models/leaveBalance.models";
 
-
 export const addLeave = async (req: any, res: Response) => {
   try {
     const parseData = leaveSchema.parse(req.body);
@@ -22,9 +21,9 @@ export const addLeave = async (req: any, res: Response) => {
     const {
       startDate,
       endDate,
-      start_leave_half_type,
+      // start_leave_half_type,
       start_leave_type,
-      end_leave_half_type,
+      // end_leave_half_type,
       end_leave_type,
       totalDays,
     } = parseData;
@@ -62,9 +61,9 @@ export const addLeave = async (req: any, res: Response) => {
       comments: parseData.comments,
       status: parseData.status,
       approveId: existingUser?.managerId || existingUser?._id,
-      start_leave_half_type,
+      // start_leave_half_type,
       start_leave_type,
-      end_leave_half_type,
+      // end_leave_half_type,
       end_leave_type,
       totalDays,
     });
@@ -201,15 +200,16 @@ export const updateLeave = async (req: any, res: Response) => {
       return apiResponse(res, StatusCodes.NOT_FOUND, messages.LEAVE_NOT_FOUND);
     }
 
-    if (userRole === "EMPLOYEE" && !leave.employeeId.equals(userId)) {
-      return apiResponse(
-        res,
-        StatusCodes.FORBIDDEN,
-        "You can only update your own leave"
-      );
-    }
-
-    const { startDate, endDate, comments } = req.body;
+    const {
+      startDate,
+      endDate,
+      comments,
+      // start_leave_half_type,
+      start_leave_type,
+      // end_leave_half_type,
+      end_leave_type,
+      totalDays,
+    } = req.body;
     if (startDate && moment(startDate).isBefore(moment(), "day")) {
       return apiResponse(
         res,
@@ -240,6 +240,11 @@ export const updateLeave = async (req: any, res: Response) => {
     if (startDate) leave.startDate = startDate;
     if (endDate) leave.endDate = endDate;
     if (comments !== undefined) leave.comments = comments;
+    if (start_leave_type) leave.start_leave_type = start_leave_type;
+    // if (start_leave_half_type) leave.start_leave_half_type = start_leave_half_type;
+    if (end_leave_type) leave.end_leave_type = end_leave_type;
+    // if (end_leave_half_type) leave.end_leave_half_type = end_leave_half_type;
+    if (totalDays) leave.totalDays = totalDays;
     await leave.save();
 
     return apiResponse(res, StatusCodes.OK, messages.LEAVE_UPDATED, { leave });
@@ -266,44 +271,50 @@ export const deleteLeave = async (req: Request, res: Response) => {
   }
 };
 
-export const approveLeave = async (req: Request, res: Response) => {
-  // try {
-  //   const leaveId = req.params.id;
-  //   const userId = req.userInfo?.id;
-  //   const { status } = req.body;
-  //   const existingLeave = await Leave.findById(leaveId);
-  //   if (!existingLeave) {
-  //     return apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_NOT_FOUND);
-  //   }
-  //   const approvedLeave = await Leave.findOneAndUpdate(
-  //     { _id: leaveId },
-  //     { status: status, approveById: userId },
-  //     { new: true }
-  //   );
-  //   if (status === "APPROVED") {
-  //     let leaveDays = 0;
-  //     const start = moment(existingLeave.startDate).startOf("day");
-  //     const end = moment(existingLeave.endDate).startOf("day");
-  //     if (existingLeave.leave_type === "FULL_DAY") {
-  //       leaveDays = end.diff(start, "days") + 1;
-  //     } else if (
-  //       existingLeave.leave_type === "FIRST_HALF" ||
-  //       existingLeave.leave_type === "SECOND_HALF"
-  //     ) {
-  //       leaveDays = 0.5;
-  //     }
-  //     const leaveBalance = await LeaveBalance.findOne({
-  //       employeeId: existingLeave.employeeId,
-  //       isDeleted: false,
-  //     });
-  //     if (!leaveBalance) {
-  //       return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
-  //     }
-  //     leaveBalance.leave = Math.max(leaveBalance.leave - leaveDays, 0);
-  //     await leaveBalance.save();
-  //   }
-  //   return apiResponse(res, StatusCodes.OK, "Leave status updated", { leave: approvedLeave });
-  // } catch (error) {
-  //   handleError(res, error);
-  // }
+export const approveLeave = async (req: any, res: Response) => {
+  try {
+    const leaveId = req.params.id;
+    const userId = req.userInfo?.id;
+    const { status } = req.body;
+
+    if (!["APPROVED", "REJECT"].includes(status)) {
+      return apiResponse(res, StatusCodes.BAD_REQUEST, "Invalid status value");
+    }
+
+    const existingLeave = await Leave.findById(leaveId);
+    if (!existingLeave || existingLeave.isDeleted) {
+      return apiResponse(res, StatusCodes.NOT_FOUND, messages.LEAVE_NOT_FOUND);
+    }
+
+    if (existingLeave.status !== "PENDING") {
+      return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave already processed");
+    }
+
+    const approvedLeave = await Leave.findByIdAndUpdate(
+      leaveId,
+      { status, approveById: userId },
+      { new: true }
+    );
+
+    if (status === "APPROVED") {
+      const leaveBalance = await LeaveBalance.findOne({
+        employeeId: existingLeave.employeeId,
+        isDeleted: false,
+      });
+
+      if (!leaveBalance) {
+        return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
+      }
+
+      leaveBalance.leave = Math.max(leaveBalance.leave - existingLeave.totalDays, 0);
+      await leaveBalance.save();
+    }
+
+    return apiResponse(res, StatusCodes.OK, "Leave status updated", {
+      leave: approvedLeave,
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
 };
+

@@ -300,6 +300,7 @@ userRouter.get(
   authorization,
   getUserId
 );
+
 userRouter.patch(
   "/update-userdetails",
   authMiddleware,

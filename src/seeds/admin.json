@@ -1,8 +1,7 @@
 {
-    "role" : "ADMIN",
-    "firstName": "jack",
-    "lastName": "crwaly",
-    "username":  "jack_crawly",
-    "password": "admin@123"
-
+  "role": "ADMIN",
+  "firstName": "jack",
+  "lastName": "crwaly",
+  "password": "admin@123",
+  "email": "jack@yopmail.com"
 }
