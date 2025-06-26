@@ -146,16 +146,10 @@ const objectId = z
 export const leaveSchema = z
   .object({
 
-    startDate: z.coerce.date({
+    date: z.coerce.date({
       required_error: "startDate is required",
     }),
-    start_leave_type: z.enum(["FULL_DAY", "FIRST_HALF", "SECOND_HALF"]).optional(),
-
-    endDate: z.coerce.date({
-      required_error: "endDate is required",
-    }),
-    end_leave_type: z.enum(["FULL_DAY", "FIRST_HALF", "SECOND_HALF"]).optional(),
-
+    leave_type: z.enum(["FULL_DAY", "FIRST_HALF", "SECOND_HALF"]).optional(),
 
     comments: z.string().min(1, "comments are required"),
     approveId: objectId.optional(),

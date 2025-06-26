@@ -17,7 +17,7 @@ const leaveRouter = express.Router();
  * @openapi
  * /api/add-leave:
  *   post:
- *     summary: Create a new leave request
+ *     summary: Create a new leave request (multi-date)
  *     tags: 
  *       - Leave Controller
  *     security:
@@ -29,38 +29,32 @@ const leaveRouter = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - leave_type
- *               - startDate
- *               - endDate
- *               - status
+ *               - date
  *               - comments
  *             properties:
- *               startDate:
- *                 type: string
- *                 format: date
- *               endDate:
- *                 type: string
- *                 format: date
- *               status:
- *                 type: string
- *                 enum: [PENDING, APPROVED, REJECT]
+ *               date:
+ *                 type: array
+ *                 description: Array of leave dates with leave type
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - date
+ *                     - leave_type
+ *                   properties:
+ *                     date:
+ *                       type: string
+ *                       format: date
+ *                       example: "2025-07-06"
+ *                     leave_type:
+ *                       type: string
+ *                       enum: [FULL_DAY, FIRST_HALF, SECOND_HALF]
+ *                       example: FULL_DAY
  *               comments:
  *                 type: string
- *               start_leave_type:
- *                 type: string
- *                 enum: [FULL_DAY,FIRST_HALF, SECOND_HALF]
- *                 nullable: true
- *               end_leave_type:
- *                 type: string
- *                 enum: [FULL_DAY,FIRST_HALF, SECOND_HALF]
- *                 nullable: true
- *               totalDays:
- *                 type: number
- *                 format: float
- *                 nullable: true
+ *                 example: "Personal work"
  *     responses:
  *       201:
- *         description: Leave successfully created
+ *         description: Leave(s) successfully created
  *         content:
  *           application/json:
  *             schema:
@@ -71,16 +65,23 @@ const leaveRouter = express.Router();
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: Leave added successfully
+ *                   example: Leave(s) added successfully
  *                 data:
  *                   type: object
  *                   properties:
- *                     leave:
- *                       $ref: '#/components/schemas/Leave'
+ *                     totalLeaveDays:
+ *                       type: number
+ *                       format: float
+ *                       example: 1.5
+ *                     leaves:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Leave'
  *       400:
- *         description: Leave already exists or bad request
+ *         description: Bad request (missing dates or invalid data)
+ *       409:
+ *         description: Conflict (All leaves already exist or invalid)
  */
-
 leaveRouter.post('/add-leave', authMiddleware, addLeave);
 
 /**
@@ -165,6 +166,7 @@ leaveRouter.get('/leave/:id', getLeaveById)
  */
 
 leaveRouter.get('/leave-list', authMiddleware, leaveList);
+
 /**
  * @openapi
  * /api/update-leave/{id}:
@@ -187,29 +189,29 @@ leaveRouter.get('/leave-list', authMiddleware, leaveList);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - date
  *             properties:
- *               startDate:
- *                 type: string
- *                 format: date
- *                 example: "2025-06-25"
- *               endDate:
- *                 type: string
- *                 format: date
- *                 example: "2025-06-27"
+ *               date:
+ *                 type: array
+ *                 description: Array of leave dates with leave type
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - date
+ *                     - leave_type
+ *                   properties:
+ *                     date:
+ *                       type: string
+ *                       format: date
+ *                       example: "2025-07-08"
+ *                     leave_type:
+ *                       type: string
+ *                       enum: [FULL_DAY, FIRST_HALF, SECOND_HALF]
+ *                       example: "FIRST_HALF"
  *               comments:
  *                 type: string
  *                 example: "Updated reason for leave"
- *               start_leave_type:
- *                 type: string
- *                 enum: [FULL_DAY, FIRST_HALF, SECOND_HALF]
- *                 example: "FULL_DAY"
- *               end_leave_type:
- *                 type: string
- *                 enum: [FULL_DAY, FIRST_HALF, SECOND_HALF]
- *                 example: "FULL_DAY"
- *               totalDays:
- *                 type: number
- *                 example: 2.5
  *     responses:
  *       200:
  *         description: Leave updated successfully
@@ -230,9 +232,9 @@ leaveRouter.get('/leave-list', authMiddleware, leaveList);
  *                     leave:
  *                       $ref: '#/components/schemas/Leave'
  *       400:
- *         description: Invalid date input
+ *         description: Invalid or missing date input
  *       403:
- *         description: Unauthorized to update
+ *         description: Unauthorized to update this leave
  *       404:
  *         description: Leave not found
  *       500:
