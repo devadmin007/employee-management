@@ -38,13 +38,13 @@ const userRouter = express.Router();
  *            schema:
  *              type: object
  *              required :
- *                - username
+ *                - email
  *                - firstName
  *                - lastName
  *                - password
  *                - role
  *              properties :
- *                username :
+ *                email :
  *                  type : string
  *                firstName :
  *                  type : string
@@ -81,11 +81,11 @@ userRouter.post("/register", createUser);
  *            schema:
  *              type: object
  *              required :
- *                - username
+ *                - email
  *                - password
  *
  *              properties :
- *                username :
+ *                email :
  *                  type : string
  *                password :
  *                  type : string
