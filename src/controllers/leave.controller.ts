@@ -13,13 +13,21 @@ import { Role } from "../models/role.model";
 import { paginationObject } from "../utils/pagination";
 import { LeaveBalance } from "../models/leaveBalance.models";
 
+
 export const addLeave = async (req: any, res: Response) => {
   try {
     const parseData = leaveSchema.parse(req.body);
 
     const userId = req.userInfo?.id;
-    console.log(req.userInfo);
-    const { startDate, endDate } = parseData;
+    const {
+      startDate,
+      endDate,
+      start_leave_half_type,
+      start_leave_type,
+      end_leave_half_type,
+      end_leave_type,
+      totalDays,
+    } = parseData;
 
     let existingUser: any;
 
@@ -53,8 +61,12 @@ export const addLeave = async (req: any, res: Response) => {
       endDate: endDate,
       comments: parseData.comments,
       status: parseData.status,
-      leave_type: parseData.leave_type,
       approveId: existingUser?.managerId || existingUser?._id,
+      start_leave_half_type,
+      start_leave_type,
+      end_leave_half_type,
+      end_leave_type,
+      totalDays,
     });
 
     if (leave) {
@@ -136,7 +148,6 @@ export const leaveList = async (req: Request, res: Response) => {
       {
         $project: {
           employeeId: 1,
-          leave_type: 1,
           startDate: 1,
           endDate: 1,
           status: 1,
@@ -145,6 +156,11 @@ export const leaveList = async (req: Request, res: Response) => {
           isDeleted: 1,
           createdAt: 1,
           updatedAt: 1,
+          start_leave_half_type: 1,
+          start_leave_type: 1,
+          end_leave_half_type: 1,
+          end_leave_type: 1,
+          totalDays: 1,
           "approveId.firstName": 1,
           "approveId.lastName": 1,
           "approveById.firstName": 1,
@@ -251,25 +267,23 @@ export const deleteLeave = async (req: Request, res: Response) => {
 };
 
 export const approveLeave = async (req: Request, res: Response) => {
-  try {
+  // try {
     const leaveId = req.params.id;
     const userId = req.userInfo?.id;
     const { status } = req.body;
 
     const existingLeave = await Leave.findById(leaveId);
     if (!existingLeave) {
-      return apiResponse(
-        res,
-        StatusCodes.BAD_REQUEST,
-        messages.LEAVE_NOT_FOUND
-      );
+      return apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_NOT_FOUND);
     }
+
 
     const approvedLeave = await Leave.findOneAndUpdate(
       { _id: leaveId },
       { status: status, approveById: userId },
       { new: true }
     );
+
 
     if (status === "APPROVED") {
       let leaveDays = 0;
@@ -278,7 +292,7 @@ export const approveLeave = async (req: Request, res: Response) => {
       const end = moment(existingLeave.endDate).startOf("day");
 
       if (existingLeave.leave_type === "FULL_DAY") {
-        leaveDays = end.diff(start, "days") + 1;
+        leaveDays = end.diff(start, "days") + 1; 
       } else if (
         existingLeave.leave_type === "FIRST_HALF" ||
         existingLeave.leave_type === "SECOND_HALF"
@@ -286,28 +300,23 @@ export const approveLeave = async (req: Request, res: Response) => {
         leaveDays = 0.5;
       }
 
+
       const leaveBalance = await LeaveBalance.findOne({
         employeeId: existingLeave.employeeId,
         isDeleted: false,
       });
 
       if (!leaveBalance) {
-        return apiResponse(
-          res,
-          StatusCodes.BAD_REQUEST,
-          "Leave balance not found"
-        );
+        return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
       }
 
-      leaveBalance.leave = Math.max(leaveBalance.leave - leaveDays, 0);
+      leaveBalance.leave = Math.max(leaveBalance.leave - leaveDays, 0); 
       await leaveBalance.save();
     }
 
-    return apiResponse(res, StatusCodes.OK, "Leave status updated", {
-      leave: approvedLeave,
-    });
-  } catch (error) {
-    handleError(res, error);
-  }
+    return apiResponse(res, StatusCodes.OK, "Leave status updated", { leave: approvedLeave });
+  // } catch (error) {
+  //   handleError(res, error);
+  // }
 };
 

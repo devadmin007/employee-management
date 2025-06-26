@@ -61,7 +61,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const parseResult = loginSchema.parse(req.body);
     const { email, password } = parseResult;
 
-    const user: any = await User.findOne({ email }).populate('role');
+    const user: any = await User.findOne({ email: email }).populate('role');
     if (!user) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
       return;
@@ -127,7 +127,7 @@ const safeAssign = (target: any, source: any) => {
 export const userCreate = async (req: Request, res: Response) => {
   try {
 
-    
+
     const { step } = req.body;
     const stepNumber = parseInt(step);
 
@@ -143,11 +143,13 @@ export const userCreate = async (req: Request, res: Response) => {
       const {
         firstName,
         lastName,
+        email, personalEmail,
         phoneNumber,
         personalNumber,
         currentAddress,
         permenentAddress,
         role,
+        dateOfBirth
       } = req.body;
 
       if (!req.file) {
@@ -159,7 +161,18 @@ export const userCreate = async (req: Request, res: Response) => {
         file,
         "employee_management"
       );
-
+      let parsePermententAddress: any
+      if (typeof permenentAddress === "string") {
+        parsePermententAddress = JSON.parse(permenentAddress);
+      } else {
+        parsePermententAddress = permenentAddress;
+      }
+      let parseCurrentAddress: any;
+      if (typeof currentAddress === "string") {
+        parseCurrentAddress = JSON.parse(currentAddress);
+      } else {
+        parseCurrentAddress = currentAddress;
+      }
       const rawPassword = generatePassword();
       const hashedPassword = await bcrypt.hash(rawPassword, 10);
       const employeeId = await generateEmployeeId();
@@ -168,10 +181,10 @@ export const userCreate = async (req: Request, res: Response) => {
         firstName,
         lastName,
         role,
+        email, personalEmail,
         password: hashedPassword,
         image: uploadResult.secure_url,
         employeeId,
-        email: `${firstName.toLowerCase()}_${lastName.toLowerCase()}`,
       });
 
       const savedUser = await user.save();
@@ -180,8 +193,9 @@ export const userCreate = async (req: Request, res: Response) => {
         userId: savedUser._id,
         phoneNumber,
         personalNumber,
-        currentAddress,
-        permenentAddress,
+        currentAddress: parseCurrentAddress,
+        permenentAddress: parsePermententAddress,
+        dateOfBirth
       });
 
       await userDetails.save();

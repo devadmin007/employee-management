@@ -228,6 +228,72 @@ userRouter.post(
   upload.single("image"),
   userCreate
 );
+/**
+ * @swagger
+ * /api/fetched-userdetails/{id}:
+ *   get:
+ *     summary: Get user by ID along with user details
+ *     tags: [User Controller]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 664b112b943ea05a2f27318c
+ *         description: MongoDB ObjectId of the user
+ *     responses:
+ *       200:
+ *         description: User fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: User fetched successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     isActive:
+ *                       type: boolean
+ *                     isDeleted:
+ *                       type: boolean
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                     userDetails:
+ *                       type: object
+ *                       properties:
+ *                         userId:
+ *                           type: string
+ *                         firstName:
+ *                           type: string
+ *                         lastName:
+ *                           type: string
+ *       404:
+ *         description: User not found
+ *       401:
+ *         description: Unauthorized - token missing or invalid
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *       500:
+ *         description: Internal server error
+ */
+
 userRouter.get(
   "/fetched-userdetails/:id",
   authMiddleware,

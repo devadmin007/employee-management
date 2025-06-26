@@ -53,7 +53,7 @@ export const updateSkillSchema = skillZodSchema;
 
 export const createHolidaySchema = z.object({
   label: z.string().min(1, "Holiday is required"),
-  date : z.string().min(1,'date is required')
+  date: z.string().min(1, 'date is required')
 });
 
 export const updateHolidaySchema = createHolidaySchema;
@@ -142,19 +142,36 @@ const objectId = z
     message: "Invalid ObjectId",
   });
 
-export const leaveSchema = z.object({
-  leave_type: z.enum(["FIRST_HALF", "SECOND_HALF", "FULL_DAY"], {
-    required_error: "leave type is required",
-  }),
-  startDate: z.coerce.date({
-    required_error: "startDate is required",
-  }),
-  endDate: z.coerce.date({
-    required_error: "endDate is required",
-  }),
-  status: z.enum(["PENDING", "APPROVED", "REJECT"], {
-    required_error: "status is required",
-  }),
-  comments: z.string().min(1, "comments are required"),
-  approveId: objectId.optional(),
-});
+
+export const leaveSchema = z
+  .object({
+
+    startDate: z.coerce.date({
+      required_error: "startDate is required",
+    }),
+    start_leave_type: z.enum(["FULL_DAY"]).optional(),
+    start_leave_half_type: z.enum(["FIRST_HALF", "SECOND_HALF"]).optional(),
+
+    endDate: z.coerce.date({
+      required_error: "endDate is required",
+    }),
+    end_leave_type: z.enum(["FULL_DAY"]).optional(),
+    end_leave_half_type: z.enum(["FIRST_HALF", "SECOND_HALF"]).optional(),
+
+    totalDays: z.number().min(1, "totalDays is required"),
+    status: z.enum(["PENDING", "APPROVED", "REJECT"], {
+      required_error: "status is required",
+    }),
+    comments: z.string().min(1, "comments are required"),
+    approveId: objectId.optional(),
+  })
+  .refine((data) => {
+    // Ensure mutually exclusive selection of full and half day for start and end
+    const validStart =
+      !data.start_leave_type || !data.start_leave_half_type;
+    const validEnd = !data.end_leave_type || !data.end_leave_half_type;
+    return validStart && validEnd;
+  }, {
+    message: "Choose either full day or half day for start and end, not both.",
+    path: ["leave_type"],
+  });

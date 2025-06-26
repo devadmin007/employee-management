@@ -1,19 +1,23 @@
-import { Document, model, Schema, Types } from "mongoose";
+import { AnyBulkWriteOperation, Document, model, Schema, Types } from "mongoose";
 
 export interface Leave {
   employeeId: Types.ObjectId;
-  leave_type: string;
   startDate: Date;
+  start_leave_type: string;
+  start_leave_half_type: string;
   endDate: Date;
+  end_leave_type: string;
+  end_leave_half_type: string;
+  totalDays: number;
   status: string;
   comments: string;
   approveId: Types.ObjectId;
-   approveById: Types.ObjectId;
+  approveById: Types.ObjectId;
   isActive: boolean;
   isDeleted: boolean;
 }
 
-export interface LeaveDocument extends Leave, Document {}
+export interface LeaveDocument extends Leave, Document { }
 
 const leaveSchema = new Schema<LeaveDocument>(
   {
@@ -21,20 +25,36 @@ const leaveSchema = new Schema<LeaveDocument>(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-    leave_type: {
-      type: String,
-      enum : ['FIRST_HALF','SECOND_HALF','FULL_DAY']
-    },
+
     startDate: {
       type: Date,
+    },
+    start_leave_type: {
+      type: String,
+      enum: ['FULL_DAY']
+    },
+    start_leave_half_type: {
+      type: String,
+      enum: ['FIRST_HALF', 'SECOND_HALF']
     },
     endDate: {
       type: Date,
     },
+    end_leave_type: {
+      type: String,
+      enum: ['FULL_DAY']
+    },
+    end_leave_half_type: {
+      type: String,
+      enum: ['FIRST_HALF', 'SECOND_HALF']
+    },
+    totalDays: {
+      type: Number,
+    },
     status: {
       type: String,
-      enum : ['PENDING','APPROVED','REJECT'],
-      default : 'PENDING'
+      enum: ['PENDING', 'APPROVED', 'REJECT'],
+      default: 'PENDING'
     },
     comments: {
       type: String,
@@ -54,4 +74,4 @@ const leaveSchema = new Schema<LeaveDocument>(
 );
 
 
-export const Leave = model<LeaveDocument>("Leave",leaveSchema);
+export const Leave = model<LeaveDocument>("Leave", leaveSchema);
