@@ -31,8 +31,8 @@ export const addLeave = async (req: any, res: Response) => {
       existingUser = await User.findOne({ role: roles?._id });
     }
     if (!existingUser) {
-     const roles = await Role.findOne({ role: "ADMIN" });
-      
+      const roles = await Role.findOne({ role: "ADMIN" });
+
       existingUser = await User.findOne({ role: roles?._id });
     }
 
@@ -250,7 +250,6 @@ export const deleteLeave = async (req: Request, res: Response) => {
   }
 };
 
-
 export const approveLeave = async (req: Request, res: Response) => {
   try {
     const leaveId = req.params.id;
@@ -259,16 +258,18 @@ export const approveLeave = async (req: Request, res: Response) => {
 
     const existingLeave = await Leave.findById(leaveId);
     if (!existingLeave) {
-      return apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_NOT_FOUND);
+      return apiResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        messages.LEAVE_NOT_FOUND
+      );
     }
-
 
     const approvedLeave = await Leave.findOneAndUpdate(
       { _id: leaveId },
       { status: status, approveById: userId },
       { new: true }
     );
-
 
     if (status === "APPROVED") {
       let leaveDays = 0;
@@ -277,7 +278,7 @@ export const approveLeave = async (req: Request, res: Response) => {
       const end = moment(existingLeave.endDate).startOf("day");
 
       if (existingLeave.leave_type === "FULL_DAY") {
-        leaveDays = end.diff(start, "days") + 1; 
+        leaveDays = end.diff(start, "days") + 1;
       } else if (
         existingLeave.leave_type === "FIRST_HALF" ||
         existingLeave.leave_type === "SECOND_HALF"
@@ -285,22 +286,28 @@ export const approveLeave = async (req: Request, res: Response) => {
         leaveDays = 0.5;
       }
 
-
       const leaveBalance = await LeaveBalance.findOne({
         employeeId: existingLeave.employeeId,
         isDeleted: false,
       });
 
       if (!leaveBalance) {
-        return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
+        return apiResponse(
+          res,
+          StatusCodes.BAD_REQUEST,
+          "Leave balance not found"
+        );
       }
 
-      leaveBalance.leave = Math.max(leaveBalance.leave - leaveDays, 0); 
+      leaveBalance.leave = Math.max(leaveBalance.leave - leaveDays, 0);
       await leaveBalance.save();
     }
 
-    return apiResponse(res, StatusCodes.OK, "Leave status updated", { leave: approvedLeave });
+    return apiResponse(res, StatusCodes.OK, "Leave status updated", {
+      leave: approvedLeave,
+    });
   } catch (error) {
     handleError(res, error);
   }
 };
+
