@@ -198,8 +198,8 @@ export const leaveList = async (req: any, res: Response) => {
     return apiResponse(res, StatusCodes.OK, "Leave list fetched successfully", {
       data: leaves,
       pagination: {
-        total: totalLeaves,
-        page: pagination.page,
+        totalCount: totalLeaves,
+        totalPages: pagination.page,
         itemsPerPage: resultPerPage,
       },
     });
