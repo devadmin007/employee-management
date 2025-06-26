@@ -153,7 +153,7 @@ export const userCreate = async (req: Request, res: Response) => {
       } = req.body;
 
       if (!req.file) {
-        return handleError(res, { message: "Image is required in step 1" });
+        return handleError(res, { message: "Image is required" });
       }
 
       const file = req.file as Express.Multer.File;
@@ -224,26 +224,39 @@ export const userCreate = async (req: Request, res: Response) => {
         department,
       } = req.body;
 
-      const parsedPrimarySkills =
-        typeof primarySkills === "string"
-          ? primarySkills.split(",").map((id: string) => id.trim())
-          : Array.isArray(primarySkills)
-            ? primarySkills
-            : [];
+      let parsePrimarySkills: any
+      let parseSecondarySkills: any
 
-      const parsedSecondarySkills =
-        typeof secondarySkills === "string"
-          ? secondarySkills.split(",").map((id: string) => id.trim())
-          : Array.isArray(secondarySkills)
-            ? secondarySkills
-            : [];
+      if (typeof primarySkills === "string") {
+        parsePrimarySkills = JSON.parse(primarySkills);
+      } else {
+        parsePrimarySkills = primarySkills;
+      }
+      if (typeof secondarySkills === "string") {
+        parseSecondarySkills = JSON.parse(secondarySkills);
+      } else {
+        parseSecondarySkills = secondarySkills;
+      }
+      // const parsedPrimarySkills =
+      //   typeof primarySkills === "string"
+      //     ? primarySkills.split(",").map((id: string) => id.trim())
+      //     : Array.isArray(primarySkills)
+      //       ? primarySkills
+      //       : [];
+
+      // const parsedSecondarySkills =
+      //   typeof secondarySkills === "string"
+      //     ? secondarySkills.split(",").map((id: string) => id.trim())
+      //     : Array.isArray(secondarySkills)
+      //       ? secondarySkills
+      //       : [];
 
       safeAssign(userDetailsUpdate, {
         managerId,
         designationId,
         teamId,
-        secondarySkills: parsedSecondarySkills,
-        primarySkills: parsedPrimarySkills,
+        secondarySkills: parsePrimarySkills,
+        primarySkills: parseSecondarySkills,
         department,
       });
     }
@@ -411,20 +424,25 @@ export const updateUser = async (req: Request, res: Response) => {
         department,
       } = req.body;
 
-      const parsedPrimarySkills = typeof primarySkills === 'string'
-        ? primarySkills.split(',').map((id: string) => id.trim())
-        : [];
+      let parsePrimarySkills: any
+      let parseSecondarySkills: any
 
-      const parsedSecondarySkills = typeof secondarySkills === 'string'
-        ? secondarySkills.split(',').map((id: string) => id.trim())
-        : [];
-
+      if (typeof primarySkills === "string") {
+        parsePrimarySkills = JSON.parse(primarySkills);
+      } else {
+        parsePrimarySkills = primarySkills;
+      }
+      if (typeof secondarySkills === "string") {
+        parseSecondarySkills = JSON.parse(secondarySkills);
+      } else {
+        parseSecondarySkills = secondarySkills;
+      }
       Object.assign(userDetailsUpdate, {
         managerId,
         designationId,
         teamId,
-        secondarySkills: parsedSecondarySkills,
-        primarySkills: parsedPrimarySkills,
+        secondarySkills: parsePrimarySkills,
+        primarySkills: parseSecondarySkills,
         department,
       });
     }
