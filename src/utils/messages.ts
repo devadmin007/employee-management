@@ -98,7 +98,13 @@ export const messages = {
   LEAVE_FOUND: 'Leave fetched successfully',
   LEAVE_NOT_FOUND: 'Leave not found',
   LEAVE_UPDATED: 'Leave Updated Succesfully',
-  LEAVE_DELETED: 'Leave Deleted'
+  LEAVE_DELETED: 'Leave Deleted',
+  
+
+  //SALARY MESSAGES 
+
+  SALARY_GENERETED : 'Salary has been genereted',
+  SALARY_EXIST : 'Salary has been alredy generated'
 
 };
 

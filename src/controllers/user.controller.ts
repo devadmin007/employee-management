@@ -1,14 +1,9 @@
 import { User } from "../models/user.model";
-import {
-  registerSchema,
-  loginSchema,
-  createUserSchema,
-  userDetailsSchema,
-  updateUserSchema,
-} from "../utils/zod";
+import { registerSchema, loginSchema } from "../utils/zod";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import moment from "moment";
 import { apiResponse } from "../utils/apiResponses";
 import { messages } from "../utils/messages";
 import { handleError } from "../utils/errHandler";
@@ -36,13 +31,19 @@ export const createUser = async (req: Request, res: Response) => {
     const finalData = {
       ...parseResult,
       password: hashedPassword,
+      joiningDate: new Date(),
     };
+
+    const currentMonth = moment().month();
+    const remainingMonths = 12 - (currentMonth + 1);
+    const monthlyLeave = 1;
+    const totalLeave = remainingMonths * monthlyLeave;
 
     const user = await User.create(finalData);
     await LeaveBalance.create({
-      leave: 12,
-      employeeId: user?._id
-    })
+      leave: totalLeave,
+      employeeId: user?._id,
+    });
     if (user) {
       apiResponse(res, StatusCodes.CREATED, messages.USER_REGISTERED, {
         email: user?.email,
@@ -61,7 +62,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const parseResult = loginSchema.parse(req.body);
     const { email, password } = parseResult;
 
-    const user: any = await User.findOne({ email: email }).populate('role');
+    const user: any = await User.findOne({ email: email }).populate("role");
     if (!user) {
       apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
       return;
@@ -87,7 +88,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       firstName: user?.firstName,
       lastName: user?.lastName,
       email: user?.email,
-      role: user?.role?.role
+      role: user?.role?.role,
     });
   } catch (error) {
     handleError(res, error);
@@ -110,7 +111,6 @@ const generatePassword = () => {
   ).join("");
 };
 
-
 const safeAssign = (target: any, source: any) => {
   for (const key in source) {
     if (
@@ -126,8 +126,6 @@ const safeAssign = (target: any, source: any) => {
 
 export const userCreate = async (req: Request, res: Response) => {
   try {
-
-
     const { step } = req.body;
     const stepNumber = parseInt(step);
 
@@ -143,13 +141,14 @@ export const userCreate = async (req: Request, res: Response) => {
       const {
         firstName,
         lastName,
-        email, personalEmail,
+        email,
+        personalEmail,
         phoneNumber,
         personalNumber,
         currentAddress,
         permenentAddress,
         role,
-        dateOfBirth
+        dateOfBirth,
       } = req.body;
 
       if (!req.file) {
@@ -161,7 +160,7 @@ export const userCreate = async (req: Request, res: Response) => {
         file,
         "employee_management"
       );
-      let parsePermententAddress: any
+      let parsePermententAddress: any;
       if (typeof permenentAddress === "string") {
         parsePermententAddress = JSON.parse(permenentAddress);
       } else {
@@ -181,7 +180,8 @@ export const userCreate = async (req: Request, res: Response) => {
         firstName,
         lastName,
         role,
-        email, personalEmail,
+        email,
+        personalEmail,
         password: hashedPassword,
         image: uploadResult.secure_url,
         employeeId,
@@ -195,7 +195,7 @@ export const userCreate = async (req: Request, res: Response) => {
         personalNumber,
         currentAddress: parseCurrentAddress,
         permenentAddress: parsePermententAddress,
-        dateOfBirth
+        dateOfBirth,
       });
 
       await userDetails.save();
@@ -224,8 +224,8 @@ export const userCreate = async (req: Request, res: Response) => {
         department,
       } = req.body;
 
-      let parsePrimarySkills: any
-      let parseSecondarySkills: any
+      let parsePrimarySkills: any;
+      let parseSecondarySkills: any;
 
       if (typeof primarySkills === "string") {
         parsePrimarySkills = JSON.parse(primarySkills);
@@ -281,6 +281,28 @@ export const userCreate = async (req: Request, res: Response) => {
         uanDetail,
         previousExperience,
       });
+
+      const user = await User.findById(userId);
+      if (!user) {
+        return handleError(res, {
+          message: "User not found for leave balance",
+        });
+      }
+
+      const joinMonth = moment(joiningDate).month();
+      const remainingMonths = 12 - (joinMonth + 1);
+      const monthlyLeave = 1;
+      const totalLeave = remainingMonths * monthlyLeave;
+
+      const existingLeave = await LeaveBalance.findOne({
+        employeeId: user._id,
+      });
+      if (!existingLeave) {
+        await LeaveBalance.create({
+          leave: totalLeave,
+          employeeId: user._id,
+        });
+      }
     }
 
     if (stepNumber === 4) {
@@ -399,11 +421,16 @@ export const updateUser = async (req: Request, res: Response) => {
           "employee_management"
         );
         updateUserData.image = uploadResult.secure_url;
-      } {
-        updateUserData.image = req.body.image
+      }
+      {
+        updateUserData.image = req.body.image;
       }
 
-      await User.findByIdAndUpdate(userId, { $set: updateUserData }, { new: true });
+      await User.findByIdAndUpdate(
+        userId,
+        { $set: updateUserData },
+        { new: true }
+      );
 
       Object.assign(userDetailsUpdate, {
         phoneNumber,
@@ -424,8 +451,8 @@ export const updateUser = async (req: Request, res: Response) => {
         department,
       } = req.body;
 
-      let parsePrimarySkills: any
-      let parseSecondarySkills: any
+      let parsePrimarySkills: any;
+      let parseSecondarySkills: any;
 
       if (typeof primarySkills === "string") {
         parsePrimarySkills = JSON.parse(primarySkills);
@@ -490,14 +517,18 @@ export const updateUser = async (req: Request, res: Response) => {
       );
     }
 
-    return apiResponse(res, StatusCodes.OK, `Step ${stepNumber} update successful`, {
-      userId,
-    });
+    return apiResponse(
+      res,
+      StatusCodes.OK,
+      `Step ${stepNumber} update successful`,
+      {
+        userId,
+      }
+    );
   } catch (error) {
     handleError(res, error);
   }
 };
-
 
 export const getAllRole = async (req: Request, res: Response) => {
   try {
@@ -643,4 +674,3 @@ export const userList = async (req: Request, res: Response) => {
     handleError(res, error);
   }
 };
-

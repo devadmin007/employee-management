@@ -42,7 +42,7 @@ export const getAllSkill = async (req: Request, res: Response) => {
       query.$or = [{ label: { $regex: search, $options: "i" } }];
     }
 
-    // Get total count (for pagination metadata)
+ 
     const totalCount = await Skill.countDocuments(query);
 
     let skillQuery = Skill.find(query).sort(paginationData.sort || { createdAt: -1 });

@@ -53,7 +53,7 @@ export const updateSkillSchema = skillZodSchema;
 
 export const createHolidaySchema = z.object({
   label: z.string().min(1, "Holiday is required"),
-  date: z.string().min(1, 'date is required')
+  date: z.string().min(1, "date is required"),
 });
 
 export const updateHolidaySchema = createHolidaySchema;
@@ -142,7 +142,6 @@ const objectId = z
     message: "Invalid ObjectId",
   });
 
-
 export const leaveSchema = z
   .object({
 
@@ -155,3 +154,13 @@ export const leaveSchema = z
     approveId: objectId.optional(),
   })
 
+  
+
+//SALARY ZOD
+
+export const salarySchema = z.object({
+  employeeId: z.string().min(1, "Employee ID is required"),
+  baseSalary: z.number().nonnegative("Base salary must be >= 0"),
+  generatedAt: z.coerce.date(),
+  month: z.string().min(1, "Month is required"),
+});
