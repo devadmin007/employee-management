@@ -29,7 +29,7 @@ export interface UserDetails {
   panNo: string;
   aadharNo: string;
   personalNumber: string;
-  currentSalary: string;
+  currentSalary: number;
   previousExperience: string;
   pfNo: string;
   uanDetail: string;
@@ -105,7 +105,7 @@ const userDetailSchema = new Schema<UserDetailsDocument>(
       type: String,
     },
     currentSalary: {
-      type: String,
+      type: Number,
     },
     previousExperience: {
       type: String,

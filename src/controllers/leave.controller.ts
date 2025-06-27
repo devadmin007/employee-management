@@ -155,10 +155,10 @@ export const leaveList = async (req: any, res: Response) => {
     }
 
     if (status) match.status = status;
-    if (startDate) match.startDate = { $gte: new Date(startDate as string) };
-    if (endDate) {
-      match.endDate = match.endDate || {};
-      match.endDate.$lte = new Date(endDate as string);
+    if (startDate || endDate) {
+      match.date = {};
+      if (startDate) match.date.$gte = new Date(startDate as string);
+      if (endDate) match.date.$lte = new Date(endDate as string);
     }
 
     const { search } = req.query;
@@ -189,10 +189,10 @@ export const leaveList = async (req: any, res: Response) => {
       },
       {
         $addFields: {
-          employeefullName: {
+          employee_full_name: {
             $concat: ["$employeeId.firstName", " ", "$employeeId.lastName"]
           },
-          approverfullName: {
+          approver_full_name: {
             $concat: ["$approveId.firstName", " ", "$approveId.lastName"]
           },
         },
@@ -204,8 +204,8 @@ export const leaveList = async (req: any, res: Response) => {
       pipeline.push({
         $match: {
           $or: [
-            { employeefullName: { $regex: search, $options: "i" } },
-            { approverfullName: { $regex: search, $options: "i" } },
+            { employee_full_name: { $regex: search, $options: "i" } },
+            { approver_full_name: { $regex: search, $options: "i" } },
           ],
         },
       });
@@ -214,21 +214,17 @@ export const leaveList = async (req: any, res: Response) => {
     pipeline.push(
       {
         $project: {
-          startDate: 1,
-          endDate: 1,
+          date: 1,
           status: 1,
           comments: 1,
           isActive: 1,
           isDeleted: 1,
           createdAt: 1,
           updatedAt: 1,
-          start_leave_half_type: 1,
-          start_leave_type: 1,
-          end_leave_half_type: 1,
-          end_leave_type: 1,
+          leave_type: 1,
           totalDays: 1,
-          approverfullName: 1,
-          employeefullName: 1,
+          employee_full_name: 1,
+          approver_full_name: 1,
         },
       },
       { $sort: sort },

@@ -2,7 +2,6 @@ import { Document, model, Schema, Types } from "mongoose";
 
 export interface Salary {
   employeeId: Types.ObjectId;
-  baseSalary: number;
   netSalary: number;
   leaveDeducation: number;
   generetedAt: Date;
@@ -19,9 +18,7 @@ const salarySchema = new Schema<SalaryDocument>(
       required: true,
       ref: "User",
     },
-    baseSalary: {
-      type: Number,
-    },
+  
    netSalary :{
     type: Number,
    },
@@ -31,6 +28,10 @@ const salarySchema = new Schema<SalaryDocument>(
 
     generetedAt: {
       type: Date,
+    },
+    month:{
+      type:String,
+
     },
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },

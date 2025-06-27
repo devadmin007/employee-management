@@ -20,6 +20,7 @@ export const authorization = async (
 
   const roleDoc :any= await User.findById(userId).populate('role');
     const userRole = roleDoc?.role.role;
+console.log(roleDoc);
 
   if (userRole === "HR" || userRole === "ADMIN") {
     next();

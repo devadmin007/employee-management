@@ -2,14 +2,20 @@ import app from "./app";
 import dotenv from "dotenv";
 import { connectDB } from "./config/connection";
 import { setupSwagger } from "./utils/swagger";
+import nodeCron from "node-cron";
 import { createAdminUser, seedRole } from "./seeder";
+import { generateSalary } from "./controllers/salary.controller";
 dotenv.config();
 
 const start = async () => {
   await connectDB();
   // createAdminUser();
   // seedRole();
-
+  
+// nodeCron.schedule("*/10 * * * * *", () => {
+// console.log('Monthly salary function');
+// generateSalary()
+// });
   console.log(process.env.PORT)
   app.listen(process.env.PORT, () => {
     console.log(

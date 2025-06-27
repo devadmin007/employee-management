@@ -270,6 +270,7 @@ export const userCreate = async (req: Request, res: Response) => {
         pfNo,
         uanDetail,
         previousExperience,
+        currentSalary
       } = req.body;
 
       safeAssign(userDetailsUpdate, {
@@ -280,6 +281,7 @@ export const userCreate = async (req: Request, res: Response) => {
         pfNo,
         uanDetail,
         previousExperience,
+        currentSalary
       });
 
       const user = await User.findById(userId);
@@ -297,12 +299,16 @@ export const userCreate = async (req: Request, res: Response) => {
       const existingLeave = await LeaveBalance.findOne({
         employeeId: user._id,
       });
+ 
       if (!existingLeave) {
         await LeaveBalance.create({
           leave: totalLeave,
           employeeId: user._id,
+          extraLeave: 0,
         });
-      }
+      }else {
+  console.log("LeaveBalance already exists for:", user._id);
+}
     }
 
     if (stepNumber === 4) {
@@ -484,6 +490,7 @@ export const updateUser = async (req: Request, res: Response) => {
         pfNo,
         uanDetail,
         previousExperience,
+        currentSalary
       } = req.body;
 
       Object.assign(userDetailsUpdate, {
@@ -494,6 +501,7 @@ export const updateUser = async (req: Request, res: Response) => {
         pfNo,
         uanDetail,
         previousExperience,
+        currentSalary
       });
     }
 
