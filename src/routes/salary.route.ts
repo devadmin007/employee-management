@@ -105,7 +105,7 @@ const salaryRoute = express.Router();
  */
 
 
-salaryRoute.get("/salary-list", authMiddleware, authorization, getSalaryList);
+salaryRoute.get("/salary-list", authMiddleware, getSalaryList);
 
 
 
@@ -174,6 +174,8 @@ salaryRoute.get("/salary-list", authMiddleware, authorization, getSalaryList);
  *         description: Internal server error
  */
 
-salaryRoute.get('/salary/:id',authMiddleware,authorization,getSalaryById);
-salaryRoute.post('/salary-pdf',addSalaryPdf)
+salaryRoute.get('/salary/:id',authMiddleware,getSalaryById);
+
+
+salaryRoute.post('/salary-pdf',authMiddleware,authorization,addSalaryPdf)
 export default salaryRoute;
