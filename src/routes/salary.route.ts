@@ -2,7 +2,7 @@ import express from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { authorization } from "../middlewares/validate.middleware";
 
-import { getSalaryById, getSalaryList } from "../controllers/salary.controller";
+import { addSalaryPdf, getSalaryById, getSalaryList } from "../controllers/salary.controller";
 
 const salaryRoute = express.Router();
 
@@ -175,5 +175,5 @@ salaryRoute.get("/salary-list", authMiddleware, authorization, getSalaryList);
  */
 
 salaryRoute.get('/salary/:id',authMiddleware,authorization,getSalaryById);
-
+salaryRoute.post('/salary-pdf',addSalaryPdf)
 export default salaryRoute;

@@ -4,8 +4,9 @@ export interface Salary {
   employeeId: Types.ObjectId;
   netSalary: number;
   leaveDeducation: number;
-  generetedAt: Date;
+  generatedAt: Date;
   month: string;
+  extraLeave: number;
   isActive?: boolean;
   isDeleted?: boolean;
 }
@@ -18,26 +19,28 @@ const salarySchema = new Schema<SalaryDocument>(
       required: true,
       ref: "User",
     },
-  
-   netSalary :{
-    type: Number,
-   },
+
+    netSalary: {
+      type: Number,
+    },
     leaveDeducation: {
       type: Number,
     },
 
-    generetedAt: {
+    generatedAt: {
       type: Date,
     },
-    month:{
-      type:String,
+    month: {
+      type: String,
+    },
 
+    extraLeave: {
+      type: Number,
     },
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true, versionKey: false }
 );
-
 
 export const Salary = model<SalaryDocument>("Salary", salarySchema);

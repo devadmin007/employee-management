@@ -1,19 +1,22 @@
 import { Salary } from "../models/salary.model";
 import { LeaveBalance } from "../models/leaveBalance.models";
 import moment from "moment";
-import cron from "node-cron";
+import { PassThrough } from "stream";
 import { Request, Response } from "express";
 import { handleError } from "../utils/errHandler";
-import { salarySchema } from "../utils/zod";
+
 import { apiResponse } from "../utils/apiResponses";
 import { StatusCodes } from "http-status-codes";
-import { Leave } from "../models/leave.model";
+
 import { messages } from "../utils/messages";
 import { User } from "../models/user.model";
 import { UserDetails } from "../models/userDetails.model";
-import { log } from "console";
-import { paginationObject } from "../utils/pagination";
 
+import { paginationObject } from "../utils/pagination";
+import PDFDocument from "pdfkit";
+// import * as getStream from "get-stream";
+import getStream from "get-stream";
+import { Cloudinary } from "../utils/cloudinary";
 
 export const generateSalary = async () => {
   try {
@@ -63,6 +66,7 @@ export const generateSalary = async () => {
         netSalary,
         generatedAt,
         month: currentMonth,
+        extraLeave
       });
 
       console.log("salary generated completed");
@@ -78,13 +82,13 @@ export const getSalaryList = async (req: Request, res: Response) => {
 
     const { skip, resultPerPage, sort } = pagination;
     const match: any = {};
-    const { search,month } = req.query;
-   if (month) {
+    const { search, month } = req.query;
+    if (month) {
       match.month = { $regex: `^${month}$`, $options: "i" };
     }
     const pipeline: any = [
-       {
-        $match: match, 
+      {
+        $match: match,
       },
       {
         $lookup: {
@@ -156,14 +160,97 @@ export const getSalaryById = async (req: Request, res: Response) => {
   try {
     const salaryId = req.params.id;
     const salary = await Salary.findById(salaryId).populate({
-      path: 'employeeId',
-      select: '-password' 
+      path: "employeeId",
+      select: "-password",
     });
 
     if (!salary) {
       apiResponse(res, StatusCodes.BAD_REQUEST, messages.SALARY_NOT_FOUND);
     }
-    apiResponse(res, StatusCodes.OK, messages.SALARY_FOUND,salary);
+    apiResponse(res, StatusCodes.OK, messages.SALARY_FOUND, salary);
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+
+export const addSalaryPdf = async (req: Request, res: Response) => {
+  try {
+    const { month, year } = req.body;
+
+    if (!month && !year) {
+      return handleError(res, {
+        message: "Please provide at least month or a year",
+      });
+    }
+
+    // Build match filter
+    const match: any = {};
+    if (month) {
+      match.month = { $regex: `^${month}$`, $options: "i" };
+    }
+    if (year) {
+      match.generatedAt = {
+        $gte: new Date(`${year}-01-01`),
+        $lte: new Date(`${year}-12-31`),
+      };
+    }
+
+    // Fetch salary records
+    const salaries = await Salary.find(match).populate({
+      path: "employeeId",
+      select: "firstName lastName email employeeId",
+    });
+
+    if (salaries.length === 0) {
+      return handleError(res, {
+        message: `No salary records found for ${month || ""} ${year || ""}`.trim(),
+      });
+    }
+
+    // Generate PDF
+    const doc = new PDFDocument();
+    const chunks: Uint8Array[] = [];
+
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("end", async () => {
+      const pdfBuffer = Buffer.concat(chunks);
+
+      const fileObj = {
+        originalname: `salary-report-${month || year}-${Date.now()}.pdf`,
+        buffer: pdfBuffer,
+      } as Express.Multer.File;
+
+      const result = await Cloudinary.uploadToCloudinary(fileObj, "emp");
+
+      return apiResponse(
+        res,
+        StatusCodes.CREATED,
+        "PDF file has been generated successfully",
+        { pdfUrl: result.secure_url }
+      );
+    });
+
+    // PDF Content
+    doc.fontSize(16).text(`Salary Report - ${month || ""} ${year || ""}`.trim(), {
+      align: "center",
+    });
+    doc.moveDown();
+
+    salaries.forEach((salary, index) => {
+      const employee = salary.employeeId as any;
+      doc
+        .fontSize(12)
+        .text(`${index + 1}. ${employee.firstName} ${employee.lastName}`);
+      doc.text(`   Email: ${employee.email}`);
+      doc.text(`   Net Salary: ₹${salary.netSalary}`);
+      doc.text(`   Leave Deduction: ₹${salary.leaveDeducation}`);
+      doc.text(`   Generated At: ${moment(salary.generatedAt).format("YYYY-MM-DD")}`);
+      doc.moveDown();
+    });
+
+    doc.end(); // this triggers 'end' event above
+
   } catch (error) {
     handleError(res, error);
   }
