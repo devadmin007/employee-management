@@ -127,6 +127,7 @@ export const getSalaryList = async (req: Request, res: Response) => {
           createdAt: 1,
           updatedAt: 1,
           employee_full_name: 1,
+          extraLeave: 1
         },
       },
       { $sort: sort },

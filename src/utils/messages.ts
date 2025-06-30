@@ -99,15 +99,15 @@ export const messages = {
   LEAVE_NOT_FOUND: 'Leave not found',
   LEAVE_UPDATED: 'Leave Updated Succesfully',
   LEAVE_DELETED: 'Leave Deleted',
-  
+
 
   //SALARY MESSAGES 
 
-  SALARY_GENERETED : 'Salary has been genereted',
-  SALARY_EXIST : 'Salary has been alredy generated',
+  SALARY_GENERETED: 'Salary has been genereted',
+  SALARY_EXIST: 'Salary has been alredy generated',
 
-  SALARY_NOT_FOUND : 'Salary has been not fetched',
-   SALARY_FOUND : 'Salary has  fetched',
+  SALARY_NOT_FOUND: 'Salary has been not fetched',
+  SALARY_FOUND: 'Salary has  fetched',
 
 };
 
