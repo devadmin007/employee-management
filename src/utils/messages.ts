@@ -104,7 +104,10 @@ export const messages = {
   //SALARY MESSAGES 
 
   SALARY_GENERETED : 'Salary has been genereted',
-  SALARY_EXIST : 'Salary has been alredy generated'
+  SALARY_EXIST : 'Salary has been alredy generated',
+
+  SALARY_NOT_FOUND : 'Salary has been not fetched',
+   SALARY_FOUND : 'Salary has  fetched',
 
 };
 

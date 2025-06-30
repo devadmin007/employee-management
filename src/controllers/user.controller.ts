@@ -272,6 +272,7 @@ export const userCreate = async (req: Request, res: Response) => {
         pfNo,
         uanDetail,
         previousExperience,
+        currentSalary,
       } = req.body;
 
       safeAssign(userDetailsUpdate, {
@@ -282,6 +283,7 @@ export const userCreate = async (req: Request, res: Response) => {
         pfNo,
         uanDetail,
         previousExperience,
+        currentSalary,
       });
 
       const user = await User.findById(userId);
@@ -299,11 +301,15 @@ export const userCreate = async (req: Request, res: Response) => {
       const existingLeave = await LeaveBalance.findOne({
         employeeId: user._id,
       });
+
       if (!existingLeave) {
         await LeaveBalance.create({
           leave: totalLeave,
           employeeId: user._id,
+          extraLeave: 0,
         });
+      } else {
+        console.log("LeaveBalance already exists for:", user._id);
       }
     }
 
@@ -505,6 +511,7 @@ export const updateUser = async (req: Request, res: Response) => {
         pfNo,
         uanDetail,
         previousExperience,
+        currentSalary,
       } = req.body;
 
       Object.assign(userDetailsUpdate, {
@@ -515,7 +522,33 @@ export const updateUser = async (req: Request, res: Response) => {
         pfNo,
         uanDetail,
         previousExperience,
+        currentSalary,
       });
+
+      const user = await User.findById(userId);
+      console.log(user, "myuser");
+
+      if (!user) {
+        return handleError(res, {
+          message: "User not found for leave balance",
+        });
+      }
+
+      const joinMonth = moment(joiningDate).month(); // 0 = Jan, 11 = Dec
+      const remainingMonths = 12 - (joinMonth + 1);
+      const monthlyLeave = 1;
+      const totalLeave = remainingMonths * monthlyLeave;
+
+      // Avoid duplicate LeaveBalance creation if already exists
+      const existingLeave = await LeaveBalance.findOne({
+        employeeId: user._id,
+      });
+      if (!existingLeave) {
+        await LeaveBalance.create({
+          leave: totalLeave,
+          employeeId: user._id,
+        });
+      }
     }
 
     // Step 4: Update bank details

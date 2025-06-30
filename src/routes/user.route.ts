@@ -188,8 +188,10 @@ userRouter.post("/login", loginUser);
  *                 type: string
  *               uanDetail:
  *                 type: string
- *               previousExperience:
+ *               previousExperience:        
  *                 type: string
+ *               currentSalary:
+ *                 type: Number
  *               bankDetails.accountNumber:
  *                 type: string
  *               bankDetails.ifscCode:
