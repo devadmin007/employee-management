@@ -373,7 +373,7 @@ export const approveLeave = async (req: any, res: Response) => {
         employeeId: existingLeave.employeeId,
         isDeleted: false,
       });
-      console.log("Leave Balance:", leaveBalance);
+
       if (leaveBalance?.leave === 0) {
         leaveBalance.extraLeave = leaveBalance?.extraLeave + existingLeave?.totalDays;
       }

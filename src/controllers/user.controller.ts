@@ -149,6 +149,7 @@ export const userCreate = async (req: Request, res: Response) => {
         permenentAddress,
         role,
         dateOfBirth,
+        gender
       } = req.body;
 
       if (!req.file) {
@@ -196,6 +197,7 @@ export const userCreate = async (req: Request, res: Response) => {
         currentAddress: parseCurrentAddress,
         permenentAddress: parsePermententAddress,
         dateOfBirth,
+        gender
       });
 
       await userDetails.save();
@@ -306,14 +308,18 @@ export const userCreate = async (req: Request, res: Response) => {
     }
 
     if (stepNumber === 4) {
-      const { accountNumber, ifscCode, branchName } = req.body;
+      const { bankDetails } = req.body;
 
-      const bankDetails: any = {};
-      safeAssign(bankDetails, { accountNumber, ifscCode, branchName });
-
-      if (Object.keys(bankDetails).length > 0) {
-        userDetailsUpdate.bankDetails = bankDetails;
+      let parseBankDetails: any = {};
+      if (typeof bankDetails === "string") {
+        parseBankDetails = JSON.parse(bankDetails);
+      } else {
+        parseBankDetails = bankDetails;
       }
+
+      safeAssign(userDetailsUpdate, { bankDetails: parseBankDetails });
+
+
     }
 
     await UserDetails.findOneAndUpdate(
@@ -384,7 +390,7 @@ export const getUserId = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const stepNumber = parseInt(req.body.step);
-    const userId = req.params.userId;
+    const userId = req.body.userId;
 
     if (!userId) {
       return handleError(res, { message: "userId is required in params" });
@@ -406,12 +412,25 @@ export const updateUser = async (req: Request, res: Response) => {
         currentAddress,
         permenentAddress,
         role,
+        gender, dateOfBirth
       } = req.body;
-
+      let parsePermententAddress: any
+      if (typeof permenentAddress === "string") {
+        parsePermententAddress = JSON.parse(permenentAddress);
+      } else {
+        parsePermententAddress = permenentAddress;
+      }
+      let parseCurrentAddress: any;
+      if (typeof currentAddress === "string") {
+        parseCurrentAddress = JSON.parse(currentAddress);
+      } else {
+        parseCurrentAddress = currentAddress;
+      }
       let updateUserData: any = {
         firstName,
         lastName,
         role,
+
       };
 
       if (req.file) {
@@ -435,8 +454,10 @@ export const updateUser = async (req: Request, res: Response) => {
       Object.assign(userDetailsUpdate, {
         phoneNumber,
         personalNumber,
-        currentAddress,
-        permenentAddress,
+        currentAddress: parseCurrentAddress,
+        permenentAddress: parsePermententAddress,
+        gender,
+        dateOfBirth
       });
     }
 
@@ -499,13 +520,16 @@ export const updateUser = async (req: Request, res: Response) => {
 
     // Step 4: Update bank details
     if (stepNumber === 4) {
-      const { accountNumber, ifscCode, branchName } = req.body;
-
-      userDetailsUpdate.bankDetails = {
-        accountNumber,
-        ifscCode,
-        branchName,
-      };
+      const { bankDetails } = req.body;
+      let parseBankDetails: any = {};
+      if (typeof bankDetails === "string") {
+        parseBankDetails = JSON.parse(bankDetails);
+      } else {
+        parseBankDetails = bankDetails;
+      }
+      Object.assign(userDetailsUpdate, {
+        bankDetails: parseBankDetails
+      });
     }
 
     // Apply update if any details collected

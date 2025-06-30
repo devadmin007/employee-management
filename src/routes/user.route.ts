@@ -298,13 +298,125 @@ userRouter.get(
   "/fetched-userdetails/:id",
   authMiddleware,
   authorization,
+
   getUserId
 );
 
-userRouter.patch(
+/**
+ * @swagger
+ * /update-userdetails:
+ *   put:
+ *     summary: Update user details step-wise (1 to 4)
+ *     tags:
+ *       - User Controller
+ *     security:
+ *       - bearerAuth: []
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - step
+ *               - userId
+ *             properties:
+ *               step:
+ *                 type: integer
+ *                 enum: [1, 2, 3, 4]
+ *                 description: Step number for updating specific user detail section
+ *               userId:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *               personalNumber:
+ *                 type: string
+ *               currentAddress:
+ *                 type: string
+ *               permenentAddress:
+ *                 type: string
+ *               managerId:
+ *                 type: string
+ *               designationId:
+ *                 type: string
+ *               teamId:
+ *                 type: string
+ *               primarySkills:
+ *                 oneOf:
+ *                   - type: array
+ *                     items:
+ *                       type: string
+ *                   - type: string
+ *                 description: JSON array or stringified array
+ *               secondarySkills:
+ *                 oneOf:
+ *                   - type: array
+ *                     items:
+ *                       type: string
+ *                   - type: string
+ *               department:
+ *                 type: string
+ *               joiningDate:
+ *                 type: string
+ *                 format: date
+ *               probationDate:
+ *                 type: string
+ *                 format: date
+ *               panNo:
+ *                 type: string
+ *               aadharNo:
+ *                 type: string
+ *               pfNo:
+ *                 type: string
+ *               uanDetail:
+ *                 type: string
+ *               previousExperience:
+ *                 type: string
+ *               accountNumber:
+ *                 type: string
+ *               ifscCode:
+ *                 type: string
+ *               branchName:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User details updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: string
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ */
+
+userRouter.put(
   "/update-userdetails",
   authMiddleware,
   authorization,
+  upload.single("image"),
   updateUser
 );
 /**
