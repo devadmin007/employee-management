@@ -149,13 +149,21 @@ export const userCreate = async (req: Request, res: Response) => {
         permenentAddress,
         role,
         dateOfBirth,
-        gender
+        gender,
       } = req.body;
 
       if (!req.file) {
         return handleError(res, { message: "Image is required" });
       }
+      const existingUser = await User.findOne({ email: email });
 
+      if (existingUser) {
+        return apiResponse(
+          res,
+          StatusCodes.BAD_REQUEST,
+          messages.EXISTING_USER
+        );
+      }
       const file = req.file as Express.Multer.File;
       const uploadResult = await Cloudinary.uploadToCloudinary(
         file,
@@ -197,7 +205,7 @@ export const userCreate = async (req: Request, res: Response) => {
         currentAddress: parseCurrentAddress,
         permenentAddress: parsePermententAddress,
         dateOfBirth,
-        gender
+        gender,
       });
 
       await userDetails.save();
@@ -324,8 +332,6 @@ export const userCreate = async (req: Request, res: Response) => {
       }
 
       safeAssign(userDetailsUpdate, { bankDetails: parseBankDetails });
-
-
     }
 
     await UserDetails.findOneAndUpdate(
@@ -418,9 +424,10 @@ export const updateUser = async (req: Request, res: Response) => {
         currentAddress,
         permenentAddress,
         role,
-        gender, dateOfBirth
+        gender,
+        dateOfBirth,
       } = req.body;
-      let parsePermententAddress: any
+      let parsePermententAddress: any;
       if (typeof permenentAddress === "string") {
         parsePermententAddress = JSON.parse(permenentAddress);
       } else {
@@ -436,7 +443,6 @@ export const updateUser = async (req: Request, res: Response) => {
         firstName,
         lastName,
         role,
-
       };
 
       if (req.file) {
@@ -463,7 +469,7 @@ export const updateUser = async (req: Request, res: Response) => {
         currentAddress: parseCurrentAddress,
         permenentAddress: parsePermententAddress,
         gender,
-        dateOfBirth
+        dateOfBirth,
       });
     }
 
@@ -561,7 +567,7 @@ export const updateUser = async (req: Request, res: Response) => {
         parseBankDetails = bankDetails;
       }
       Object.assign(userDetailsUpdate, {
-        bankDetails: parseBankDetails
+        bankDetails: parseBankDetails,
       });
     }
 
