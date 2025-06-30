@@ -5,6 +5,7 @@ import { authorization } from "../middlewares/validate.middleware";
 import { getSalaryById, getSalaryList } from "../controllers/salary.controller";
 
 const salaryRoute = express.Router();
+
 /**
  * @openapi
  * /api/salary-list:
@@ -21,29 +22,35 @@ const salaryRoute = express.Router();
  *           type: string
  *         description: Search users by full name
  *       - in: query
+ *         name: month
+ *         schema:
+ *           type: string
+ *           example: January
+ *         description: Filter by salary month (case-insensitive)
+ *       - in: query
  *         name: page
  *         schema:
  *           type: integer
  *           default: 1
- *         description: Current page number (applies only when pagination is enabled).
+ *         description: Current page number (applies only when pagination is enabled)
  *       - in: query
  *         name: itemsPerPage
  *         schema:
  *           type: integer
  *           default: 10
- *         description: Number of users per page (applies only when pagination is enabled).
+ *         description: Number of users per page (applies only when pagination is enabled)
  *       - in: query
  *         name: sortField
  *         schema:
  *           type: string
  *           example: createdAt
- *         description: Field to sort by (applies only when pagination is enabled).
+ *         description: Field to sort by (applies only when pagination is enabled)
  *       - in: query
  *         name: sortOrder
  *         schema:
  *           type: string
  *           enum: [asc, desc, ASC, DESC, 1, -1]
- *         description: Sort order (ascending or descending).
+ *         description: Sort order (ascending or descending)
  *     responses:
  *       200:
  *         description: Salary list fetched successfully
@@ -96,6 +103,8 @@ const salaryRoute = express.Router();
  *       500:
  *         description: Internal server error
  */
+
+
 salaryRoute.get("/salary-list", authMiddleware, authorization, getSalaryList);
 
 

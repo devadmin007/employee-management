@@ -78,9 +78,14 @@ export const getSalaryList = async (req: Request, res: Response) => {
 
     const { skip, resultPerPage, sort } = pagination;
     const match: any = {};
-    const { search } = req.query;
-
+    const { search,month } = req.query;
+   if (month) {
+      match.month = { $regex: `^${month}$`, $options: "i" };
+    }
     const pipeline: any = [
+       {
+        $match: match, 
+      },
       {
         $lookup: {
           from: "users",
