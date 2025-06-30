@@ -14,9 +14,10 @@ import { UserDetails } from "../models/userDetails.model";
 
 import { paginationObject } from "../utils/pagination";
 import PDFDocument from "pdfkit";
-// import * as getStream from "get-stream";
 import getStream from "get-stream";
 import { Cloudinary } from "../utils/cloudinary";
+import { Mongoose } from "mongoose";
+import mongoose from "mongoose";
 
 export const generateSalary = async () => {
   try {
@@ -66,7 +67,7 @@ export const generateSalary = async () => {
         netSalary,
         generatedAt,
         month: currentMonth,
-        extraLeave
+        extraLeave,
       });
 
       console.log("salary generated completed");
@@ -76,13 +77,21 @@ export const generateSalary = async () => {
   }
 };
 
-export const getSalaryList = async (req: Request, res: Response) => {
+export const getSalaryList = async (req: any, res: Response) => {
   try {
     const pagination = paginationObject(req.query);
 
     const { skip, resultPerPage, sort } = pagination;
     const match: any = {};
     const { search, month } = req.query;
+
+    if (
+      req.userInfo.role.role === "EMPLOYEE" ||
+      req.userInfo.role.role === "PROJECT_MANAGER"
+    ) {
+      console.log(req.userInfo)
+      match.employeeId = new mongoose.Types.ObjectId(req.userInfo.id);
+    }
     if (month) {
       match.month = { $regex: `^${month}$`, $options: "i" };
     }
@@ -160,20 +169,25 @@ export const getSalaryList = async (req: Request, res: Response) => {
 export const getSalaryById = async (req: Request, res: Response) => {
   try {
     const salaryId = req.params.id;
+
     const salary = await Salary.findById(salaryId).populate({
       path: "employeeId",
       select: "-password",
     });
 
     if (!salary) {
-      apiResponse(res, StatusCodes.BAD_REQUEST, messages.SALARY_NOT_FOUND);
+      return apiResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        messages.SALARY_NOT_FOUND
+      );
     }
+
     apiResponse(res, StatusCodes.OK, messages.SALARY_FOUND, salary);
   } catch (error) {
     handleError(res, error);
   }
 };
-
 
 export const addSalaryPdf = async (req: Request, res: Response) => {
   try {
@@ -205,7 +219,9 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
 
     if (salaries.length === 0) {
       return handleError(res, {
-        message: `No salary records found for ${month || ""} ${year || ""}`.trim(),
+        message: `No salary records found for ${month || ""} ${
+          year || ""
+        }`.trim(),
       });
     }
 
@@ -232,26 +248,106 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
       );
     });
 
-    // PDF Content
-    doc.fontSize(16).text(`Salary Report - ${month || ""} ${year || ""}`.trim(), {
-      align: "center",
-    });
-    doc.moveDown();
+   
 
+   
+    // // === PDF HEADER ===
+    // doc
+    //   .fontSize(20)
+    //   .fillColor("#000")
+    //   .text("Salary Report", { align: "center" })
+    //   .moveDown(0.5);
+
+    // doc
+    //   .fontSize(12)
+    //   .fillColor("gray")
+    //   .text(`Period: ${month || "All Months"} ${year || ""}`, {
+    //     align: "center",
+    //   })
+    //   .moveDown(1);
+
+    // // === EMPLOYEE SALARY BLOCKS ===
+    // salaries.forEach((salary, index) => {
+    //   const employee = salary.employeeId as any;
+
+    //   doc
+    //     .fillColor("#000")
+    //     .fontSize(13)
+    //     .text(`${index + 1}. ${employee.firstName} ${employee.lastName}`, {
+    //       underline: true,
+    //     });
+
+    //   doc
+    //     .fontSize(11)
+    //     .fillColor("#333")
+    //     .text(`   Email: ${employee.email}`)
+    //     .text(`   Net Salary: ₹${salary.netSalary.toFixed(2)}`)
+    //     .text(`   Leave Deduction: ₹${salary.leaveDeducation.toFixed(2)}`)
+    //      .text(`   Extra Leave: ${salary.extraLeave ?? 0}`)
+    //     .text(
+    //       `   Generated At: ${moment(salary.generatedAt).format("YYYY-MM-DD")}`
+    //     )
+    //     .moveDown(1);
+    // });
+
+    // // === FOOTER ===
+    // doc
+    //   .fontSize(10)
+    //   .fillColor("gray")
+    //   .text(`Report generated on ${moment().format("YYYY-MM-DD HH:mm:ss")}`, {
+    //     align: "center",
+    //   });
+
+    
+    // === PDF HEADER ===
+    doc
+      .fontSize(20)
+      .fillColor("#000")
+      .text("Salary Report", { align: "center" })
+      .moveDown(0.5);
+
+    doc
+      .fontSize(12)
+      .fillColor("gray")
+      .text(`Period: ${month || "All Months"} ${year || ""}`, {
+        align: "center",
+      })
+      .moveDown(1);
+
+    // === EMPLOYEE SALARY BLOCKS ===
     salaries.forEach((salary, index) => {
       const employee = salary.employeeId as any;
+
       doc
-        .fontSize(12)
-        .text(`${index + 1}. ${employee.firstName} ${employee.lastName}`);
-      doc.text(`   Email: ${employee.email}`);
-      doc.text(`   Net Salary: ₹${salary.netSalary}`);
-      doc.text(`   Leave Deduction: ₹${salary.leaveDeducation}`);
-      doc.text(`   Generated At: ${moment(salary.generatedAt).format("YYYY-MM-DD")}`);
-      doc.moveDown();
+        .fillColor("#000")
+        .fontSize(13)
+        .text(`${index + 1}. ${employee.firstName} ${employee.lastName}`, {
+          underline: true,
+        });
+
+      doc
+        .fontSize(11)
+        .fillColor("#333")
+        .text(`   Email: ${employee.email}`)
+        .text(`   Net Salary: ₹${salary.netSalary.toFixed(2)}`)
+        .text(`   Leave Deduction: ₹${salary.leaveDeducation.toFixed(2)}`)
+        .text(`   Extra Leave: ${salary.extraLeave ?? 0}`)
+        .text(
+          `   Generated At: ${moment(salary.generatedAt).format(
+            "YYYY-MM-DD"
+          )}`
+        )
+        .moveDown(1);
     });
 
+    // === FOOTER ===
+    doc
+      .fontSize(10)
+      .fillColor("gray")
+      .text(`Report generated on ${moment().format("YYYY-MM-DD HH:mm:ss")}`, {
+        align: "center",
+      });
     doc.end(); // this triggers 'end' event above
-
   } catch (error) {
     handleError(res, error);
   }
