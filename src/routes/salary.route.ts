@@ -98,6 +98,73 @@ const salaryRoute = express.Router();
  */
 salaryRoute.get("/salary-list", authMiddleware, authorization, getSalaryList);
 
-salaryRoute.get('/salary/:id',authMiddleware,authorization,getSalaryById)
+
+
+/**
+ * @openapi
+ * /api/salary/{id}:
+ *   get:
+ *     summary: Get salary details by salary ID
+ *     tags:
+ *       - Salary
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the salary record to fetch
+ *     responses:
+ *       200:
+ *         description: Salary record found successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Salary found successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     baseSalary:
+ *                       type: number
+ *                     netSalary:
+ *                       type: number
+ *                     leaveDeduction:
+ *                       type: number
+ *                     month:
+ *                       type: string
+ *                     generatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                     employeeId:
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                         firstName:
+ *                           type: string
+ *                         lastName:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *       400:
+ *         description: Salary record not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+
+salaryRoute.get('/salary/:id',authMiddleware,authorization,getSalaryById);
 
 export default salaryRoute;
