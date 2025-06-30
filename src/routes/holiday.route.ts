@@ -137,7 +137,7 @@ holidayRouter.post("/add-holiday",  addHoliday);
 
 
 
-holidayRouter.get("/holidays", authMiddleware, authorization, getAllHolidays);
+holidayRouter.get("/holidays", authMiddleware, getAllHolidays);
 
 
 
