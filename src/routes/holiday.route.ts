@@ -58,7 +58,7 @@ const holidayRouter = express.Router();
 
 
 // holidayRouter.post("/add-holiday", authMiddleware, authorization, addHoliday);
-holidayRouter.post("/add-holiday",  addHoliday);
+holidayRouter.post("/add-holiday", addHoliday);
 /**
  *  @openapi
  *  /api/holidays:
@@ -137,7 +137,7 @@ holidayRouter.post("/add-holiday",  addHoliday);
 
 
 
-holidayRouter.get("/holidays", authMiddleware, authorization, getAllHolidays);
+holidayRouter.get("/holidays", authMiddleware, getAllHolidays);
 
 
 
