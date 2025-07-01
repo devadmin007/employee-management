@@ -166,6 +166,8 @@ userRouter.post("/login", loginUser);
  *                 type: string
  *               currentAddress.zip:
  *                 type: string
+ *               gender:
+ *                 type: string
  *               managerId:
  *                 type: string
  *               designationId:
