@@ -44,6 +44,8 @@ export const createUser = async (req: Request, res: Response) => {
       leave: totalLeave,
       employeeId: user?._id,
     });
+
+    await UserDetails.create({userId:user?._id})
     if (user) {
       apiResponse(res, StatusCodes.CREATED, messages.USER_REGISTERED, {
         email: user?.email,
