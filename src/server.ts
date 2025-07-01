@@ -14,10 +14,14 @@ const start = async () => {
 
   // seedRole();
 
-  // nodeCron.schedule("*/10 * * * * *", () => {
-  // console.log('Monthly salary function');
-  // generateSalary()
-  // });
+  nodeCron.schedule("*/1 * * * *", async() => {
+  console.log('Monthly salary function');
+  await generateSalary()
+  console.log('function executed');
+  
+  });
+
+
   console.log(process.env.PORT)
   app.listen(process.env.PORT, () => {
     console.log(

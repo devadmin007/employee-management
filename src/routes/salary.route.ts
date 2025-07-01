@@ -175,7 +175,82 @@ salaryRoute.get("/salary-list", authMiddleware, getSalaryList);
  */
 
 salaryRoute.get('/salary/:id',authMiddleware,getSalaryById);
-
+/** 
+* paths:
+*   /salary-pdf:
+*     post:
+*       tags:
+*         - Salary
+*       summary: Generate Salary PDF
+*       description: >
+*         Generates a PDF report of employee salaries for a given month and/or year,
+*         uploads it to Cloudinary, and returns the PDF URL.
+*       operationId: generateSalaryPdf
+*       security:
+*         - bearerAuth: []
+*       requestBody:
+*         required: true
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 month:
+*                   type: string
+*                   example: "January"
+*                   description: Month of the salary records (optional)
+*                 year:
+*                   type: string
+*                   example: "2025"
+*                   description: Year of the salary records (optional)
+*               required: []
+*       responses:
+*         '201':
+*           description: PDF generated and uploaded successfully
+*           content:
+*             application/json:
+*               schema:
+*                 type: object
+*                 properties:
+*                   status:
+*                     type: string
+*                     example: success
+*                   message:
+*                     type: string
+*                     example: PDF file has been generated successfully
+*                   data:
+*                     type: object
+*                     properties:
+*                       pdfUrl:
+*                         type: string
+*                         example: https://res.cloudinary.com/demo/image/upload/v1234567890/emp/salary-report-January-2025.pdf
+*         '400':
+*           description: Bad request – missing month/year or no records
+*           content:
+*             application/json:
+*               schema:
+*                 type: object
+*                 properties:
+*                   status:
+*                     type: string
+*                     example: fail
+*                   message:
+*                     type: string
+*                     example: Please provide at least month or a year
+*         '500':
+*           description: Internal Server Error
+*           content:
+*             application/json:
+*               schema:
+*                 type: object
+*                 properties:
+*                   status:
+*                     type: string
+*                     example: error
+*                   message:
+*                     type: string
+*                     example: Internal Server Error
+*/
 
 salaryRoute.post('/salary-pdf',authMiddleware,authorization,addSalaryPdf)
 export default salaryRoute;

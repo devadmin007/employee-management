@@ -19,6 +19,67 @@ import { Cloudinary } from "../utils/cloudinary";
 import { Mongoose } from "mongoose";
 import mongoose from "mongoose";
 
+// export const generateSalary = async () => {
+//   try {
+//     console.log('24===')
+//     const generatedAt = new Date();
+//     const currentMonth = moment(generatedAt).format("MMMM");
+//     const currentYear = moment(generatedAt).year();
+//     const totalDays = moment(
+//       `${currentMonth} ${currentYear}`,
+//       "MMMM YYYY"
+//     ).daysInMonth();
+
+//     const users = await User.find({ isDeleted: false });
+
+//     for (const user of users) {
+//       const employeeId = user._id;
+
+//       const userDetails = await UserDetails.findOne({ userId: employeeId });
+
+//       if (!userDetails || !userDetails.currentSalary) continue;
+
+//       const baseSalary = userDetails.currentSalary;
+
+//       const existingSalary = await Salary.findOne({
+//         employeeId,
+//         month: currentMonth,
+//       });
+
+//       if (existingSalary) continue;
+
+//       const leaveBalance: any = await LeaveBalance.findOne({
+//         employeeId: employeeId,
+//       });
+// console.log(leaveBalance);
+
+//       const balance = leaveBalance?.leave;
+//       const extraLeave = leaveBalance?.extraLeave;
+
+//       let leaveDeduct = 0;
+
+//       if (balance <= 0 && extraLeave > 0) {
+//         const perDay = baseSalary / totalDays;
+//         leaveDeduct = perDay * extraLeave;
+//       }
+//       const netSalary = baseSalary - leaveDeduct;
+//       console.log(currentMonth);
+//       await Salary.create({
+//         employeeId,
+//         leaveDeducation: leaveDeduct,
+//         netSalary,
+//         generatedAt:new Date(),
+//         month: currentMonth,
+//         extraLeave,
+//       });
+
+//       console.log("salary generated completed");
+//     }
+//   } catch (error) {
+//     console.log(`error during salary generation`);
+//   }
+// };
+
 export const generateSalary = async () => {
   try {
     const generatedAt = new Date();
@@ -36,7 +97,13 @@ export const generateSalary = async () => {
 
       const userDetails = await UserDetails.findOne({ userId: employeeId });
 
-      if (!userDetails || !userDetails.currentSalary) continue;
+      if (!userDetails) {
+        continue;
+      }
+
+      if (!userDetails.currentSalary) {
+        continue;
+      }
 
       const baseSalary = userDetails.currentSalary;
 
@@ -44,14 +111,18 @@ export const generateSalary = async () => {
         employeeId,
         month: currentMonth,
       });
-      if (existingSalary) continue;
 
-      const leaveBalance: any = await LeaveBalance.findOne({
-        employeeId: employeeId,
-      });
+      if (existingSalary) {
+        continue;
+      }
 
-      const balance = leaveBalance?.leave;
-      const extraLeave = leaveBalance?.extraLeave;
+      const leaveBalance: any = await LeaveBalance.findOne({ employeeId });
+
+      if (!leaveBalance) {
+      }
+
+      const balance = leaveBalance?.leave ?? 0;
+      const extraLeave = leaveBalance?.extraLeave ?? 0;
 
       let leaveDeduct = 0;
 
@@ -59,21 +130,28 @@ export const generateSalary = async () => {
         const perDay = baseSalary / totalDays;
         leaveDeduct = perDay * extraLeave;
       }
-      const netSalary = baseSalary - leaveDeduct;
-      console.log(currentMonth);
-      await Salary.create({
-        employeeId,
-        leaveDeducation: leaveDeduct,
-        netSalary,
-        generatedAt,
-        month: currentMonth,
-        extraLeave,
-      });
 
-      console.log("salary generated completed");
+      const netSalary = baseSalary - leaveDeduct;
+
+      try {
+        await Salary.create({
+          employeeId,
+          leaveDeducation: leaveDeduct,
+          netSalary,
+          generatedAt: new Date(),
+          month: currentMonth,
+          extraLeave,
+        });
+
+        console.log(` Salary generated for ${employeeId}`);
+      } catch (err) {
+        console.error(` Failed to generate salary for ${employeeId}:`, err);
+      }
     }
+
+    console.log(" Salary generation completed for all users.");
   } catch (error) {
-    console.log(`error during salary generation`);
+    console.error(" Error during salary generation:", error);
   }
 };
 
@@ -89,7 +167,7 @@ export const getSalaryList = async (req: any, res: Response) => {
       req.userInfo.role.role === "EMPLOYEE" ||
       req.userInfo.role.role === "PROJECT_MANAGER"
     ) {
-      console.log(req.userInfo)
+      console.log(req.userInfo);
       match.employeeId = new mongoose.Types.ObjectId(req.userInfo.id);
     }
     if (month) {
@@ -248,9 +326,6 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
       );
     });
 
-   
-
-   
     // // === PDF HEADER ===
     // doc
     //   .fontSize(20)
@@ -298,49 +373,127 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
     //     align: "center",
     //   });
 
-    
     // === PDF HEADER ===
     doc
       .fontSize(20)
       .fillColor("#000")
-      .text("Salary Report", { align: "center" })
-      .moveDown(0.5);
-
+      .text("Salary Report", { align: "center" });
+    doc.moveDown(0.5);
     doc
       .fontSize(12)
       .fillColor("gray")
       .text(`Period: ${month || "All Months"} ${year || ""}`, {
         align: "center",
-      })
-      .moveDown(1);
+      });
+    doc.moveDown(1);
 
-    // === EMPLOYEE SALARY BLOCKS ===
+    // === TABLE HEADERS ===
+    const startX = doc.page.margins.left;
+    let startY = doc.y;
+
+    const colWidths = [30, 100, 130, 80, 80, 70, 100]; // widths for each column
+
+    doc
+      .fontSize(10)
+      .fillColor("#444")
+      .text("No.", startX, startY)
+      .text("Name", startX + colWidths[0], startY)
+      .text("Email", startX + colWidths[0] + colWidths[1], startY)
+      .text(
+        "Net Salary",
+        startX + colWidths[0] + colWidths[1] + colWidths[2],
+        startY
+      )
+      .text(
+        "Leave Ded.",
+        startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
+        startY
+      )
+      .text(
+        "Extra",
+        startX +
+          colWidths[0] +
+          colWidths[1] +
+          colWidths[2] +
+          colWidths[3] +
+          colWidths[4],
+        startY
+      )
+      .text(
+        "Generated At",
+        startX +
+          colWidths[0] +
+          colWidths[1] +
+          colWidths[2] +
+          colWidths[3] +
+          colWidths[4] +
+          colWidths[5],
+        startY
+      );
+
+    doc.moveDown(0.5);
+    doc.moveTo(startX, doc.y).lineTo(550, doc.y).stroke();
+
+    // === TABLE ROWS ===
     salaries.forEach((salary, index) => {
       const employee = salary.employeeId as any;
+      const y = doc.y + 5;
 
       doc
+        .fontSize(9)
         .fillColor("#000")
-        .fontSize(13)
-        .text(`${index + 1}. ${employee.firstName} ${employee.lastName}`, {
-          underline: true,
-        });
-
-      doc
-        .fontSize(11)
-        .fillColor("#333")
-        .text(`   Email: ${employee.email}`)
-        .text(`   Net Salary: ₹${salary.netSalary.toFixed(2)}`)
-        .text(`   Leave Deduction: ₹${salary.leaveDeducation.toFixed(2)}`)
-        .text(`   Extra Leave: ${salary.extraLeave ?? 0}`)
+        .text(`${index + 1}`, startX, y)
         .text(
-          `   Generated At: ${moment(salary.generatedAt).format(
-            "YYYY-MM-DD"
-          )}`
+          `${employee.firstName} ${employee.lastName}`,
+          startX + colWidths[0],
+          y
         )
-        .moveDown(1);
+        .text(`${employee.email}`, startX + colWidths[0] + colWidths[1], y, {
+          width: colWidths[2] - 5,
+          ellipsis: true,
+        })
+        .text(
+          `₹${salary.netSalary.toFixed(2)}`,
+          startX + colWidths[0] + colWidths[1] + colWidths[2],
+          y
+        )
+        .text(
+          `₹${salary.leaveDeducation.toFixed(2)}`,
+          startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
+          y
+        )
+        .text(
+          `${salary.extraLeave ?? 0}`,
+          startX +
+            colWidths[0] +
+            colWidths[1] +
+            colWidths[2] +
+            colWidths[3] +
+            colWidths[4],
+          y
+        )
+        .text(
+          `${moment(salary.generatedAt).format("YYYY-MM-DD")}`,
+          startX +
+            colWidths[0] +
+            colWidths[1] +
+            colWidths[2] +
+            colWidths[3] +
+            colWidths[4] +
+            colWidths[5],
+          y
+        );
+
+      doc.moveDown(0.5);
+
+      // Optional: Page break if reaching bottom
+      if (doc.y > 750) {
+        doc.addPage();
+      }
     });
 
     // === FOOTER ===
+    doc.moveDown(1);
     doc
       .fontSize(10)
       .fillColor("gray")
