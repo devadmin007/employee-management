@@ -133,6 +133,10 @@ userRouter.post("/login", loginUser);
  *               role:
  *                 type: string
  *                 description: Role ObjectId
+ *               email:
+ *                 type: string
+ *               personalEmail:
+ *                 type : string
  *               image:
  *                 type: string
  *                 format: binary

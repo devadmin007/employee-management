@@ -15,6 +15,7 @@ import { Role } from "../models/role.model";
 
 import { paginationObject } from "../utils/pagination";
 import { LeaveBalance } from "../models/leaveBalance.models";
+import sendEmail from "../helpers/sendEmail";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -44,6 +45,8 @@ export const createUser = async (req: Request, res: Response) => {
       leave: totalLeave,
       employeeId: user?._id,
     });
+
+    await UserDetails.create({ userId: user?._id });
     if (user) {
       apiResponse(res, StatusCodes.CREATED, messages.USER_REGISTERED, {
         email: user?.email,
@@ -89,6 +92,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       lastName: user?.lastName,
       email: user?.email,
       role: user?.role?.role,
+      userId:user?._id
     });
   } catch (error) {
     handleError(res, error);
@@ -197,6 +201,18 @@ export const userCreate = async (req: Request, res: Response) => {
       });
 
       const savedUser = await user.save();
+      await sendEmail({
+        email: savedUser.email,
+        subject: "Welcome to Employee Management System",
+        message: `
+    <h2>Welcome ${savedUser.firstName} ${savedUser.lastName},</h2>
+    <p>Your account has been successfully created.</p>
+    <p><strong>Email:</strong> ${savedUser.email}</p>
+    <p><strong>Password:</strong> ${rawPassword}</p>
+    <br/>
+    <p>Please login it via provided credential</p>
+  `,
+      });
 
       const userDetails = new UserDetails({
         userId: savedUser._id,
@@ -351,7 +367,7 @@ export const userCreate = async (req: Request, res: Response) => {
 export const getUserId = async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;
-
+ 
     const userWithDetails = await User.aggregate([
       {
         $match: {
@@ -375,6 +391,113 @@ export const getUserId = async (req: Request, res: Response) => {
         },
       },
       {
+        $lookup: {
+          from: "roles",
+          localField: "role",
+          foreignField: "_id",
+          as: "roleDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$roleDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+ 
+      // Manager
+      {
+        $lookup: {
+          from: "users",
+          localField: "userDetails.managerId",
+          foreignField: "_id",
+          as: "userDetails.manager",
+          pipeline: [{ $project: { _id: 1, lastName: 1, firstName: 1 } }],
+        },
+      },
+      {
+        $unwind: {
+          path: "$userDetails.manager",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+ 
+      // Designation
+      {
+        $lookup: {
+          from: "designations",
+          localField: "userDetails.designationId",
+          foreignField: "_id",
+          as: "userDetails.designation",
+          pipeline: [{ $project: { _id: 1, label: 1 } }],
+        },
+      },
+      {
+        $unwind: {
+          path: "$userDetails.designation",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+ 
+      // Team
+      {
+        $lookup: {
+          from: "teams",
+          localField: "userDetails.teamId",
+          foreignField: "_id",
+          as: "userDetails.team",
+          pipeline: [{ $project: { _id: 1, label: 1, value: 1 } }],
+        },
+      },
+      {
+        $unwind: {
+          path: "$userDetails.team",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+ 
+      // Department
+      {
+        $lookup: {
+          from: "departments",
+          localField: "userDetails.department",
+          foreignField: "_id",
+          as: "userDetails.department",
+          pipeline: [{ $project: { _id: 1, label: 1 } }],
+        },
+      },
+      {
+        $unwind: {
+          path: "$userDetails.department",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+ 
+      // Primary Skills
+      {
+        $lookup: {
+          from: "skills",
+          localField: "userDetails.primarySkills",
+          foreignField: "_id",
+          as: "userDetails.primarySkills",
+          pipeline: [{ $project: { _id: 1, label: 1, value: 1 } }],
+        },
+ 
+      },
+ 
+      // Secondary Skills
+      {
+        $lookup: {
+          from: "skills",
+          localField: "userDetails.secondarySkills",
+          foreignField: "_id",
+          as: "userDetails.secondarySkills",
+          pipeline: [{ $project: { _id: 1, label: 1, value: 1 } }],
+        },
+      },
+ 
+      // Final projection
+      {
         $project: {
           password: 0,
           __v: 0,
@@ -383,11 +506,11 @@ export const getUserId = async (req: Request, res: Response) => {
         },
       },
     ]);
-
+ console.log(userWithDetails)
     if (!userWithDetails || userWithDetails.length === 0) {
       return apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
     }
-
+ 
     return apiResponse(
       res,
       StatusCodes.OK,
