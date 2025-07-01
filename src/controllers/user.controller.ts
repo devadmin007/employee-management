@@ -92,7 +92,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       lastName: user?.lastName,
       email: user?.email,
       role: user?.role?.role,
-      userId:user?._id
+      userId: user?._id,
     });
   } catch (error) {
     handleError(res, error);
@@ -360,17 +360,15 @@ export const userCreate = async (req: Request, res: Response) => {
       userId,
     });
   } catch (error) {
-     console.log('error in email',error);
+    console.log("error in email", error);
     handleError(res, error);
-   
-    
   }
 };
 
 export const getUserId = async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;
- 
+
     const userWithDetails = await User.aggregate([
       {
         $match: {
@@ -407,7 +405,7 @@ export const getUserId = async (req: Request, res: Response) => {
           preserveNullAndEmptyArrays: true,
         },
       },
- 
+
       // Manager
       {
         $lookup: {
@@ -424,7 +422,7 @@ export const getUserId = async (req: Request, res: Response) => {
           preserveNullAndEmptyArrays: true,
         },
       },
- 
+
       // Designation
       {
         $lookup: {
@@ -441,7 +439,7 @@ export const getUserId = async (req: Request, res: Response) => {
           preserveNullAndEmptyArrays: true,
         },
       },
- 
+
       // Team
       {
         $lookup: {
@@ -458,7 +456,7 @@ export const getUserId = async (req: Request, res: Response) => {
           preserveNullAndEmptyArrays: true,
         },
       },
- 
+
       // Department
       {
         $lookup: {
@@ -475,7 +473,7 @@ export const getUserId = async (req: Request, res: Response) => {
           preserveNullAndEmptyArrays: true,
         },
       },
- 
+
       // Primary Skills
       {
         $lookup: {
@@ -485,9 +483,8 @@ export const getUserId = async (req: Request, res: Response) => {
           as: "userDetails.primarySkills",
           pipeline: [{ $project: { _id: 1, label: 1, value: 1 } }],
         },
- 
       },
- 
+
       // Secondary Skills
       {
         $lookup: {
@@ -498,7 +495,23 @@ export const getUserId = async (req: Request, res: Response) => {
           pipeline: [{ $project: { _id: 1, label: 1, value: 1 } }],
         },
       },
- 
+      {
+        $lookup: {
+          from: "leavebalances",
+          localField: "_id",
+          foreignField: "employeeId",
+          as: "leaveDetail",
+          pipeline: [{ $project: { _id: 1, leave: 1 } }],
+        },
+      },
+      {
+        $unwind: {
+          path: "$leaveDetail",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      
+
       // Final projection
       {
         $project: {
@@ -509,11 +522,11 @@ export const getUserId = async (req: Request, res: Response) => {
         },
       },
     ]);
- console.log(userWithDetails)
+    console.log(userWithDetails);
     if (!userWithDetails || userWithDetails.length === 0) {
       return apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
     }
- 
+
     return apiResponse(
       res,
       StatusCodes.OK,
