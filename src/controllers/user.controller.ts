@@ -202,12 +202,12 @@ export const userCreate = async (req: Request, res: Response) => {
 
       const savedUser = await user.save();
       await sendEmail({
-        email: savedUser.email,
+        email: email,
         subject: "Welcome to Employee Management System",
         message: `
     <h2>Welcome ${savedUser.firstName} ${savedUser.lastName},</h2>
     <p>Your account has been successfully created.</p>
-    <p><strong>Email:</strong> ${savedUser.email}</p>
+    <p><strong>Email:</strong> ${email}</p>
     <p><strong>Password:</strong> ${rawPassword}</p>
     <br/>
     <p>Please login it via provided credential</p>
@@ -360,7 +360,10 @@ export const userCreate = async (req: Request, res: Response) => {
       userId,
     });
   } catch (error) {
+     console.log('error in email',error);
     handleError(res, error);
+   
+    
   }
 };
 
