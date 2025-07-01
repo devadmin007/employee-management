@@ -298,9 +298,6 @@ userRouter.post(
 
 userRouter.get(
   "/fetched-userdetails/:id",
-  authMiddleware,
-  authorization,
-
   getUserId
 );
 
