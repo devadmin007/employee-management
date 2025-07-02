@@ -331,6 +331,55 @@ export const deleteLeave = async (req: Request, res: Response) => {
   }
 };
 
+// export const approveLeave = async (req: any, res: Response) => {
+//   try {
+//     const leaveId = req.params.id;
+//     const userId = req.userInfo?.id;
+//     const { status } = req.body;
+
+//     if (!["APPROVED", "REJECT"].includes(status)) {
+//       return apiResponse(res, StatusCodes.BAD_REQUEST, "Invalid status value");
+//     }
+
+//     const existingLeave = await Leave.findById(leaveId);
+//     if (!existingLeave || existingLeave.isDeleted) {
+//       return apiResponse(res, StatusCodes.NOT_FOUND, messages.LEAVE_NOT_FOUND);
+//     }
+
+//     if (existingLeave.status !== "PENDING") {
+//       return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave already processed");
+//     }
+
+//     const approvedLeave = await Leave.findByIdAndUpdate(
+//       leaveId,
+//       { status, approveById: userId },
+//       { new: true }
+//     );
+
+//     if (status === "APPROVED") {
+//       const leaveBalance = await LeaveBalance.findOne({
+//         employeeId: existingLeave.employeeId,
+//         isDeleted: false,
+//       });
+
+//       if (!leaveBalance) {
+//         return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
+//       }
+//        const deductedLeave = Math.min(leaveBalance.leave, existingLeave.totalDays);
+ 
+//        leaveBalance.leave = Math.max(leaveBalance.leave - existingLeave.totalDays, 0);
+//        leaveBalance.usedLeave += existingLeave.totalDays;
+//       await leaveBalance.save();
+//     }
+
+//     return apiResponse(res, StatusCodes.OK, "Leave status updated", {
+//       leave: approvedLeave,
+//     });
+//   } catch (error) {
+//     handleError(res, error);
+//   }
+// };
+
 export const approveLeave = async (req: any, res: Response) => {
   try {
     const leaveId = req.params.id;
@@ -365,10 +414,16 @@ export const approveLeave = async (req: any, res: Response) => {
       if (!leaveBalance) {
         return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
       }
-       const deductedLeave = Math.min(leaveBalance.leave, existingLeave.totalDays);
 
-       leaveBalance.leave = Math.max(leaveBalance.leave - existingLeave.totalDays, 0);
-       leaveBalance.usedLeave += existingLeave.totalDays;
+      const leaveDays = existingLeave.totalDays;
+
+      const deductedLeave = Math.min(leaveBalance.leave, leaveDays);
+      const extraLeaveToAdd = leaveDays - deductedLeave;
+
+      leaveBalance.leave -= deductedLeave; // Reduce main leave
+      leaveBalance.extraLeave += extraLeaveToAdd; // Increase extra leave if needed
+      leaveBalance.usedLeave += leaveDays; // Track total leave used
+
       await leaveBalance.save();
     }
 
@@ -379,4 +434,3 @@ export const approveLeave = async (req: any, res: Response) => {
     handleError(res, error);
   }
 };
-
