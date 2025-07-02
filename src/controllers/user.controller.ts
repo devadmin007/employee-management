@@ -680,7 +680,7 @@ export const updateUser = async (req: Request, res: Response) => {
       }
 
       const joinMonth = moment(joiningDate).month(); // 0 = Jan, 11 = Dec
-      const remainingMonths = 12 - (joinMonth + 1);
+      const remainingMonths = 12 - joinMonth ;
       const monthlyLeave = 1;
       const totalLeave = remainingMonths * monthlyLeave;
 
