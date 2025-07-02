@@ -26,6 +26,7 @@ export const addLeave = async (req: any, res: Response) => {
       start_leave_type,
       // end_leave_half_type,
       end_leave_type,
+      totalDays
     } = parseData;
 
     let existingUser: any;
@@ -54,14 +55,7 @@ export const addLeave = async (req: any, res: Response) => {
     if (existingLeave) {
       return apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_EXIST);
     }
-    let totalDays = moment(endDate).diff(moment(startDate), "days") + 1;
 
-    if (start_leave_type !== "FULL_DAY") {
-      totalDays -= 0.5;
-    }
-    if (end_leave_type !== "FULL_DAY") {
-      totalDays -= 0.5;
-    }
     const leave = await Leave.create({
       employeeId: userId,
       startDate: startDate,
@@ -259,6 +253,7 @@ export const updateLeave = async (req: any, res: Response) => {
       start_leave_type,
       // end_leave_half_type,
       end_leave_type,
+      totalDays
     } = req.body;
     if (startDate && moment(startDate).isBefore(moment(), "day")) {
       return apiResponse(
@@ -295,14 +290,7 @@ export const updateLeave = async (req: any, res: Response) => {
     if (end_leave_type) leave.end_leave_type = end_leave_type;
     // if (end_leave_half_type) leave.end_leave_half_type = end_leave_half_type;
 
-    let totalDays = moment(endDate).diff(moment(startDate), "days") + 1;
-
-    if (start_leave_type !== "FULL_DAY") {
-      totalDays -= 0.5;
-    }
-    if (end_leave_type !== "FULL_DAY") {
-      totalDays -= 0.5;
-    }
+  
 
     leave.totalDays = totalDays;
     await leave.save();
@@ -420,9 +408,9 @@ export const approveLeave = async (req: any, res: Response) => {
       const deductedLeave = Math.min(leaveBalance.leave, leaveDays);
       const extraLeaveToAdd = leaveDays - deductedLeave;
 
-      leaveBalance.leave -= deductedLeave; // Reduce main leave
-      leaveBalance.extraLeave += extraLeaveToAdd; // Increase extra leave if needed
-      leaveBalance.usedLeave += leaveDays; // Track total leave used
+      leaveBalance.leave -= deductedLeave; 
+      leaveBalance.extraLeave += extraLeaveToAdd; 
+      leaveBalance.usedLeave += leaveDays; 
 
       await leaveBalance.save();
     }

@@ -170,6 +170,7 @@ export const leaveSchema = z
 
 
     comments: z.string().min(1, "comments are required"),
+    totalDays: z.number(),
     approveId: objectId.optional(),
   })
 
