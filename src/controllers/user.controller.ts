@@ -36,7 +36,7 @@ export const createUser = async (req: Request, res: Response) => {
     };
 
     const currentMonth = moment().month();
-    const remainingMonths = 12 - (currentMonth + 1);
+    const remainingMonths = 12 - currentMonth ;
     const monthlyLeave = 1;
     const totalLeave = remainingMonths * monthlyLeave;
 
@@ -522,7 +522,7 @@ export const getUserId = async (req: Request, res: Response) => {
         },
       },
     ]);
-    console.log(userWithDetails);
+   
     if (!userWithDetails || userWithDetails.length === 0) {
       return apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
     }
