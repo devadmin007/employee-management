@@ -2,8 +2,12 @@ import { AnyBulkWriteOperation, Document, model, Schema, Types } from "mongoose"
 
 export interface Leave {
   employeeId: Types.ObjectId;
-  date: Date;
-  leave_type: string;
+  startDate: Date;
+  start_leave_type: string;
+  // start_leave_half_type: string;
+  endDate: Date;
+  end_leave_type: string;
+  // end_leave_half_type: string;
   totalDays: number;
   status: string;
   comments: string;
@@ -22,14 +26,28 @@ const leaveSchema = new Schema<LeaveDocument>(
       ref: "User",
     },
 
-    date: {
+    startDate: {
       type: Date,
     },
-    leave_type: {
+    start_leave_type: {
       type: String,
       enum: ['FULL_DAY', 'FIRST_HALF', 'SECOND_HALF']
     },
-
+    // start_leave_half_type: {
+    //   type: String,
+    //   enum: ['FIRST_HALF', 'SECOND_HALF']
+    // },
+    endDate: {
+      type: Date,
+    },
+    end_leave_type: {
+      type: String,
+      enum: ['FULL_DAY', 'FIRST_HALF', 'SECOND_HALF']
+    },
+    // end_leave_half_type: {
+    //   type: String,
+    //   enum: ['FIRST_HALF', 'SECOND_HALF']
+    // },
     totalDays: {
       type: Number,
     },

@@ -1,6 +1,7 @@
 import moment from "moment";
 import { Request, Response } from "express";
 import { Leave } from "../models/leave.model";
+
 import { apiResponse } from "../utils/apiResponses";
 import { handleError } from "../utils/errHandler";
 import { messages } from "../utils/messages";
@@ -15,87 +16,72 @@ import mongoose from "mongoose";
 
 export const addLeave = async (req: any, res: Response) => {
   try {
-    // const parseData = leaveSchema.parse(req.body);
+    const parseData = leaveSchema.parse(req.body);
+
     const userId = req.userInfo?.id;
+    const {
+      startDate,
+      endDate,
+      // start_leave_half_type,
+      start_leave_type,
+      // end_leave_half_type,
+      end_leave_type,
+    } = parseData;
 
-    const { date, comments } = req.body;
-
-    if (!Array.isArray(date) || date.length === 0) {
-      return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave dates are required");
-    }
-
-    // Fetch Approver
     let existingUser: any;
 
     if (req.userInfo?.role?.role === "EMPLOYEE") {
       existingUser = await UserDetails.findOne({ userId: userId });
-    } else if (
-      req.userInfo?.role.role === "PROJECT_MANAGER" ||
-      req.userInfo?.role.role === "HR"
-    ) {
+    } else if (req.userInfo?.role.role === "PROJECT_MANAGER" || req.userInfo?.role.role === "HR") {
       const roles = await Role.findOne({ role: "ADMIN" });
+      console.log(roles);
       existingUser = await User.findOne({ role: roles?._id });
     }
 
     if (!existingUser) {
       const roles = await Role.findOne({ role: "ADMIN" });
+
       existingUser = await User.findOne({ role: roles?._id });
     }
 
-    const approveId = existingUser?.managerId || existingUser?._id;
-
-    let totalLeaveDays = 0;
-    const leavesToInsert: any[] = [];
-
-    for (const leave of date) {
-      const { date, leave_type } = leave;
-
-      // Convert date to start of day to avoid timezone issues
-      const leaveDate = moment(date).startOf("day").toDate();
-
-      const existingLeave = await Leave.findOne({
-        employeeId: userId,
-        date: leaveDate,
-        approveId: approveId,
-        isDeleted: false,
-      });
-
-      if (existingLeave) {
-        continue; // skip if already exists
-      }
-
-      let dayValue = 0;
-      if (leave_type === "FULL_DAY") {
-        dayValue = 1;
-      } else if (["FIRST_HALF", "SECOND_HALF"].includes(leave_type)) {
-        dayValue = 0.5;
-      }
-
-      totalLeaveDays += dayValue;
-
-      leavesToInsert.push({
-        employeeId: userId,
-        date: leaveDate,
-        leave_type,
-        totalDays: dayValue,
-        status: "PENDING",
-        comments,
-        approveId,
-        isActive: true,
-        isDeleted: false,
-      });
-    }
-
-    if (leavesToInsert.length === 0) {
-      return apiResponse(res, StatusCodes.CONFLICT, "All leaves already exist or invalid");
-    }
-
-    const insertedLeaves = await Leave.insertMany(leavesToInsert);
-
-    return apiResponse(res, StatusCodes.CREATED, "Leave(s) added successfully", {
-      totalLeaveDays,
-      leaves: insertedLeaves,
+    const existingLeave = await Leave.findOne({
+      employeeId: userId,
+      startDate: { $lte: endDate },
+      endDate: { $gte: startDate },
+      approveId: existingUser.managerId,
+      isDeleted: false,
     });
+    if (existingLeave) {
+      return apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_EXIST);
+    }
+    let totalDays = moment(endDate).diff(moment(startDate), "days") + 1;
+
+    if (start_leave_type !== "FULL_DAY") {
+      totalDays -= 0.5;
+    }
+    if (end_leave_type !== "FULL_DAY") {
+      totalDays -= 0.5;
+    }
+    const leave = await Leave.create({
+      employeeId: userId,
+      startDate: startDate,
+      endDate: endDate,
+      comments: parseData.comments,
+      status: "PENDING",
+      approveId: existingUser?.managerId || existingUser?._id,
+      // start_leave_half_type,
+      start_leave_type,
+      // end_leave_half_type,
+      end_leave_type,
+      totalDays,
+    });
+
+    if (leave) {
+      apiResponse(res, StatusCodes.CREATED, messages.LEAVE_ADDED, {
+        leave: leave,
+      });
+    }
+    apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_NOT_ADDED);
   } catch (error) {
     handleError(res, error);
   }
@@ -112,7 +98,7 @@ export const getLeaveById = async (req: Request, res: Response) => {
         path: "approveById",
         select: "firstName lastName -_id",
       }).populate({
-        path: "employeeId",
+        path: "employeeID",
         select: "firstName lastName -_id",
       })
       .lean();
@@ -155,10 +141,10 @@ export const leaveList = async (req: any, res: Response) => {
     }
 
     if (status) match.status = status;
-    if (startDate || endDate) {
-      match.date = {};
-      if (startDate) match.date.$gte = new Date(startDate as string);
-      if (endDate) match.date.$lte = new Date(endDate as string);
+    if (startDate) match.startDate = { $gte: new Date(startDate as string) };
+    if (endDate) {
+      match.endDate = match.endDate || {};
+      match.endDate.$lte = new Date(endDate as string);
     }
 
     const { search } = req.query;
@@ -189,10 +175,10 @@ export const leaveList = async (req: any, res: Response) => {
       },
       {
         $addFields: {
-          employee_full_name: {
+          employeefullName: {
             $concat: ["$employeeId.firstName", " ", "$employeeId.lastName"]
           },
-          approver_full_name: {
+          approverfullName: {
             $concat: ["$approveId.firstName", " ", "$approveId.lastName"]
           },
         },
@@ -204,8 +190,8 @@ export const leaveList = async (req: any, res: Response) => {
       pipeline.push({
         $match: {
           $or: [
-            { employee_full_name: { $regex: search, $options: "i" } },
-            { approver_full_name: { $regex: search, $options: "i" } },
+            { employeefullName: { $regex: search, $options: "i" } },
+            { approverfullName: { $regex: search, $options: "i" } },
           ],
         },
       });
@@ -214,17 +200,21 @@ export const leaveList = async (req: any, res: Response) => {
     pipeline.push(
       {
         $project: {
-          date: 1,
+          startDate: 1,
+          endDate: 1,
           status: 1,
           comments: 1,
           isActive: 1,
           isDeleted: 1,
           createdAt: 1,
           updatedAt: 1,
-          leave_type: 1,
+          start_leave_half_type: 1,
+          start_leave_type: 1,
+          end_leave_half_type: 1,
+          end_leave_type: 1,
           totalDays: 1,
-          employee_full_name: 1,
-          approver_full_name: 1,
+          approverfullName: 1,
+          employeefullName: 1,
         },
       },
       { $sort: sort },
@@ -253,69 +243,68 @@ export const leaveList = async (req: any, res: Response) => {
 export const updateLeave = async (req: any, res: Response) => {
   try {
     const leaveId = req.params.id;
-
+    const userId = req.userInfo?.id;
+    const userRole = req.userInfo?.role?.role;
 
     const leave = await Leave.findById(leaveId);
     if (!leave || leave.isDeleted) {
       return apiResponse(res, StatusCodes.NOT_FOUND, messages.LEAVE_NOT_FOUND);
     }
 
-    const { date, comments } = req.body;
-
-    if (!Array.isArray(date) || date.length === 0) {
-      return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave dates are required");
+    const {
+      startDate,
+      endDate,
+      comments,
+      // start_leave_half_type,
+      start_leave_type,
+      // end_leave_half_type,
+      end_leave_type,
+    } = req.body;
+    if (startDate && moment(startDate).isBefore(moment(), "day")) {
+      return apiResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "Start date cannot be in the past"
+      );
     }
 
-    let totalDays = 0;
-    const uniqueDates = new Set();
+    if (
+      endDate &&
+      moment(endDate).isBefore(moment(startDate || leave.startDate), "day")
+    ) {
+      return apiResponse(
+        res,
+        StatusCodes.BAD_REQUEST,
+        "End date cannot be before start date"
+      );
+    }
+    if (startDate && !isNaN(Date.parse(startDate))) {
+      leave.startDate = new Date(startDate);
+    }
+    if (endDate && !isNaN(Date.parse(endDate))) {
+      leave.endDate = new Date(endDate);
+    }
+    if (comments !== undefined) {
+      leave.comments = comments;
+    }
+    if (startDate) leave.startDate = startDate;
+    if (endDate) leave.endDate = endDate;
+    if (comments !== undefined) leave.comments = comments;
+    if (start_leave_type) leave.start_leave_type = start_leave_type;
+    // if (start_leave_half_type) leave.start_leave_half_type = start_leave_half_type;
+    if (end_leave_type) leave.end_leave_type = end_leave_type;
+    // if (end_leave_half_type) leave.end_leave_half_type = end_leave_half_type;
 
-    const newLeaveDates: {
-      date: Date;
-      leave_type: string;
-      totalDays: number;
-    }[] = [];
+    let totalDays = moment(endDate).diff(moment(startDate), "days") + 1;
 
-    for (const entry of date) {
-      const { date: rawDate, leave_type } = entry;
-
-      if (!rawDate || !leave_type) {
-        continue;
-      }
-
-      const parsedDate = moment(rawDate).startOf("day").toDate();
-      const dateKey = parsedDate.toISOString();
-
-      if (uniqueDates.has(dateKey)) continue;
-      uniqueDates.add(dateKey);
-
-      let dayValue = 0;
-      if (leave_type === "FULL_DAY") {
-        dayValue = 1;
-      } else if (["FIRST_HALF", "SECOND_HALF"].includes(leave_type)) {
-        dayValue = 0.5;
-      }
-
-      totalDays += dayValue;
-
-      newLeaveDates.push({
-        date: parsedDate,
-        leave_type,
-        totalDays: dayValue,
-      });
+    if (start_leave_type !== "FULL_DAY") {
+      totalDays -= 0.5;
+    }
+    if (end_leave_type !== "FULL_DAY") {
+      totalDays -= 0.5;
     }
 
-    if (newLeaveDates.length === 0) {
-      return apiResponse(res, StatusCodes.BAD_REQUEST, "Invalid or duplicate leave entries");
-    }
-    // Updating fields
-    leave.set({
-      comments: comments || leave.comments,
-      date: newLeaveDates.map((d) => d.date),
-      leaveDates: newLeaveDates, // Optional: if you use a separate field to store the array
-      totalDays,
-      leave_type: newLeaveDates.map((d) => d.leave_type).join(", "), // Assuming you want to store a string of leave types
-    });
-
+    leave.totalDays = totalDays;
     await leave.save();
 
     return apiResponse(res, StatusCodes.OK, messages.LEAVE_UPDATED, { leave });
@@ -323,7 +312,6 @@ export const updateLeave = async (req: any, res: Response) => {
     handleError(res, error);
   }
 };
-
 
 export const deleteLeave = async (req: Request, res: Response) => {
   try {
@@ -374,9 +362,6 @@ export const approveLeave = async (req: any, res: Response) => {
         isDeleted: false,
       });
 
-      if (leaveBalance?.leave === 0) {
-        leaveBalance.extraLeave = leaveBalance?.extraLeave + existingLeave?.totalDays;
-      }
       if (!leaveBalance) {
         return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
       }
