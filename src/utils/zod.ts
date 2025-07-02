@@ -142,19 +142,36 @@ const objectId = z
     message: "Invalid ObjectId",
   });
 
+// export const leaveSchema = z
+//   .object({
+
+//     date: z.coerce.date({
+//       required_error: "startDate is required",
+//     }),
+//     leave_type: z.enum(["FULL_DAY", "FIRST_HALF", "SECOND_HALF"]).optional(),
+
+//     comments: z.string().min(1, "comments are required"),
+//     approveId: objectId.optional(),
+//   })
+
+
 export const leaveSchema = z
   .object({
 
-    date: z.coerce.date({
+    startDate: z.coerce.date({
       required_error: "startDate is required",
     }),
-    leave_type: z.enum(["FULL_DAY", "FIRST_HALF", "SECOND_HALF"]).optional(),
+    start_leave_type: z.enum(["FULL_DAY", "FIRST_HALF", "SECOND_HALF"]).optional(),
+
+    endDate: z.coerce.date({
+      required_error: "endDate is required",
+    }),
+    end_leave_type: z.enum(["FULL_DAY", "FIRST_HALF", "SECOND_HALF"]).optional(),
+
 
     comments: z.string().min(1, "comments are required"),
     approveId: objectId.optional(),
   })
-
-  
 
 //SALARY ZOD
 
