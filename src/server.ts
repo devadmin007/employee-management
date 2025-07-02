@@ -9,7 +9,7 @@ dotenv.config();
 
 const start = async () => {
   await connectDB();
-  // createAdminUser();
+  createAdminUser();
   seedRole();
 
   // seedRole();

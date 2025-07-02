@@ -4,11 +4,12 @@ export interface LeaveBalance {
   employeeId: Types.ObjectId;
   leave: number;
   extraLeave: number;
+  usedLeave: number;
   isActive: boolean;
   isDeleted: boolean;
 }
 
-export interface LeaveBalanceDocument extends LeaveBalance, Document { }
+export interface LeaveBalanceDocument extends LeaveBalance, Document {}
 
 export const LeaveBalanceSchema = new Schema<LeaveBalanceDocument>(
   {
@@ -21,6 +22,10 @@ export const LeaveBalanceSchema = new Schema<LeaveBalanceDocument>(
       type: Number,
     },
     extraLeave: {
+      type: Number,
+      default: 0,
+    },
+    usedLeave: {
       type: Number,
       default: 0,
     },

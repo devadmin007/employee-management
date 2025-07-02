@@ -799,6 +799,21 @@ export const userList = async (req: Request, res: Response) => {
           "userRole.role": { $ne: "ADMIN" },
         },
       },
+      {
+        $lookup: {
+          from: "leavebalances",
+          localField: "_id",
+          foreignField: "employeeId",
+          as: "leaveDetail",
+          pipeline: [{ $project: { _id: 1, leave: 1 ,usedLeave:1} }],
+        },
+      },
+      {
+        $unwind: {
+          path: "$leaveDetail",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
     ];
 
     // Add search filter
@@ -857,6 +872,8 @@ export const userList = async (req: Request, res: Response) => {
         createdAt: 1,
         updatedAt: 1,
         role: "$userRole.role",
+        totalLeave:"$leaveDetail.leave",
+        usedLeave: "$leaveDetail.usedLeave"
       },
     });
 

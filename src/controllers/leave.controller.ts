@@ -380,8 +380,10 @@ export const approveLeave = async (req: any, res: Response) => {
       if (!leaveBalance) {
         return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
       }
+       const deductedLeave = Math.min(leaveBalance.leave, existingLeave.totalDays);
 
-      leaveBalance.leave = Math.max(leaveBalance.leave - existingLeave.totalDays, 0);
+       leaveBalance.leave = Math.max(leaveBalance.leave - existingLeave.totalDays, 0);
+       leaveBalance.usedLeave += existingLeave.totalDays;
       await leaveBalance.save();
     }
 
