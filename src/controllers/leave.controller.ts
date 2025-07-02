@@ -81,6 +81,92 @@ export const addLeave = async (req: any, res: Response) => {
   }
 };
 
+
+
+// export const addLeave = async (req: any, res: Response) => {
+//   try {
+//     // ✅ Step 1: Validate request body
+//     const parseData = leaveSchema.parse(req.body);
+
+//     const userId = req.userInfo?.id;
+//     const {
+//       startDate,
+//       endDate,
+//       start_leave_type = "FULL_DAY",
+//       end_leave_type = "FULL_DAY",
+//       comments,
+//     } = parseData;
+
+//     // ✅ Step 2: Calculate totalDays
+//     const start = moment(startDate);
+//     const end = moment(endDate);
+
+//     let totalDays = end.diff(start, "days") + 1; // inclusive of both dates
+
+//     if (start_leave_type !== "FULL_DAY") totalDays -= 0.5;
+//     if (end_leave_type !== "FULL_DAY") totalDays -= 0.5;
+
+//     if (totalDays <= 0) {
+//       return apiResponse(res, StatusCodes.BAD_REQUEST, "Invalid leave duration");
+//     }
+
+//     // ✅ Step 3: Get approver (manager/admin)
+//     let existingUser: any;
+
+//     if (req.userInfo?.role?.role === "EMPLOYEE") {
+//       existingUser = await UserDetails.findOne({ userId: userId });
+//     } else if (
+//       req.userInfo?.role.role === "PROJECT_MANAGER" ||
+//       req.userInfo?.role.role === "HR"
+//     ) {
+//       const roles = await Role.findOne({ role: "ADMIN" });
+//       existingUser = await User.findOne({ role: roles?._id });
+//     }
+
+//     if (!existingUser) {
+//       const roles = await Role.findOne({ role: "ADMIN" });
+//       existingUser = await User.findOne({ role: roles?._id });
+//     }
+
+//     // ❌ Step 4: Check for existing overlapping leave
+//     const existingLeave = await Leave.findOne({
+//       employeeId: userId,
+//       startDate: { $lte: endDate },
+//       endDate: { $gte: startDate },
+//       approveId: existingUser.managerId,
+//       isDeleted: false,
+//     });
+
+//     if (existingLeave) {
+//       return apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_EXIST);
+//     }
+
+//     // ✅ Step 5: Create new leave
+//     const leave = await Leave.create({
+//       employeeId: userId,
+//       startDate,
+//       endDate,
+//       comments,
+//       status: "PENDING",
+//       approveId: existingUser?.managerId || existingUser?._id,
+//       start_leave_type,
+//       end_leave_type,
+//       totalDays,
+//     });
+
+//     if (leave) {
+//       return apiResponse(res, StatusCodes.CREATED, messages.LEAVE_ADDED, {
+//         leave,
+//       });
+//     }
+
+//     return apiResponse(res, StatusCodes.BAD_REQUEST, messages.LEAVE_NOT_ADDED);
+//   } catch (error) {
+//     handleError(res, error);
+//   }
+// };
+
+
 export const getLeaveById = async (req: Request, res: Response) => {
   try {
     const leaveId = req.params.id;
@@ -319,6 +405,7 @@ export const deleteLeave = async (req: Request, res: Response) => {
   }
 };
 
+
 // export const approveLeave = async (req: any, res: Response) => {
 //   try {
 //     const leaveId = req.params.id;
@@ -353,10 +440,16 @@ export const deleteLeave = async (req: Request, res: Response) => {
 //       if (!leaveBalance) {
 //         return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
 //       }
-//        const deductedLeave = Math.min(leaveBalance.leave, existingLeave.totalDays);
- 
-//        leaveBalance.leave = Math.max(leaveBalance.leave - existingLeave.totalDays, 0);
-//        leaveBalance.usedLeave += existingLeave.totalDays;
+
+//       const leaveDays = existingLeave.totalDays;
+
+//       const deductedLeave = Math.min(leaveBalance.leave, leaveDays);
+//       const extraLeaveToAdd = leaveDays - deductedLeave;
+
+//       leaveBalance.leave -= deductedLeave; 
+//       leaveBalance.extraLeave += extraLeaveToAdd; 
+//       leaveBalance.usedLeave += leaveDays; 
+
 //       await leaveBalance.save();
 //     }
 
@@ -367,6 +460,8 @@ export const deleteLeave = async (req: Request, res: Response) => {
 //     handleError(res, error);
 //   }
 // };
+
+
 
 export const approveLeave = async (req: any, res: Response) => {
   try {
@@ -387,33 +482,57 @@ export const approveLeave = async (req: any, res: Response) => {
       return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave already processed");
     }
 
+    const leaveBalance = await LeaveBalance.findOne({
+      employeeId: existingLeave.employeeId,
+      isDeleted: false,
+    });
+
+    // if (status === "APPROVED") {
+    //   if (!leaveBalance) {
+    //     return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
+    //   }
+
+    //   const leaveDays = existingLeave.totalDays;
+
+    //   const deductedLeave = Math.min(leaveBalance.leave, leaveDays);
+    //   const extraLeaveUsed = Math.max(leaveDays - deductedLeave, 0);
+
+    //   leaveBalance.leave -= deductedLeave;
+    //   leaveBalance.extraLeave += extraLeaveUsed;
+    //   leaveBalance.usedLeave += leaveDays;
+
+    //   await leaveBalance.save();
+    // }
+
+if (status === "APPROVED") {
+  if (!leaveBalance) {
+    return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
+  }
+
+  const leaveDays = Number(existingLeave.totalDays);
+
+  if (isNaN(leaveDays)) {
+    return apiResponse(res, StatusCodes.BAD_REQUEST, "Invalid or missing totalDays in leave");
+  }
+
+  const availableLeave = Number(leaveBalance.leave ?? 0);
+  const currentExtraLeave = Number(leaveBalance.extraLeave ?? 0);
+  const currentUsedLeave = Number(leaveBalance.usedLeave ?? 0);
+
+  const deductedLeave = Math.min(availableLeave, leaveDays);
+  const extraLeaveUsed = Math.max(leaveDays - deductedLeave, 0);
+
+  leaveBalance.leave = availableLeave - deductedLeave;
+  leaveBalance.extraLeave = currentExtraLeave + extraLeaveUsed;
+  leaveBalance.usedLeave = currentUsedLeave + leaveDays;
+
+  await leaveBalance.save();
+}
     const approvedLeave = await Leave.findByIdAndUpdate(
       leaveId,
       { status, approveById: userId },
       { new: true }
     );
-
-    if (status === "APPROVED") {
-      const leaveBalance = await LeaveBalance.findOne({
-        employeeId: existingLeave.employeeId,
-        isDeleted: false,
-      });
-
-      if (!leaveBalance) {
-        return apiResponse(res, StatusCodes.BAD_REQUEST, "Leave balance not found");
-      }
-
-      const leaveDays = existingLeave.totalDays;
-
-      const deductedLeave = Math.min(leaveBalance.leave, leaveDays);
-      const extraLeaveToAdd = leaveDays - deductedLeave;
-
-      leaveBalance.leave -= deductedLeave; 
-      leaveBalance.extraLeave += extraLeaveToAdd; 
-      leaveBalance.usedLeave += leaveDays; 
-
-      await leaveBalance.save();
-    }
 
     return apiResponse(res, StatusCodes.OK, "Leave status updated", {
       leave: approvedLeave,
