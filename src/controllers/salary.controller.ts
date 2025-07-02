@@ -142,7 +142,8 @@ export const generateSalary = async () => {
           month: currentMonth,
           extraLeave,
         });
-
+        leaveBalance.extraLeave = 0;
+        await leaveBalance.save();
         console.log(` Salary generated for ${employeeId}`);
       } catch (err) {
         console.error(` Failed to generate salary for ${employeeId}:`, err);
