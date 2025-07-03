@@ -170,6 +170,7 @@ export const leaveSchema = z
 
 
     comments: z.string().min(1, "comments are required"),
+    totalDays: z.number().optional(),
     approveId: objectId.optional(),
   })
 
@@ -180,4 +181,17 @@ export const salarySchema = z.object({
   baseSalary: z.number().nonnegative("Base salary must be >= 0"),
   generatedAt: z.coerce.date(),
   month: z.string().min(1, "Month is required"),
+});
+
+export const resetPasswordLink = z.object({
+  email: z
+    .string()
+    .email("Invalid email format")
+    .refine((value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value), {
+      message: "Email is not valid",
+    }),
+});
+export const resetPassword = z.object({
+  newPassword: z.string().min(1, "Password must be required"),
+  confirmPassword: z.string().min(1, "Password must be required"),
 });
