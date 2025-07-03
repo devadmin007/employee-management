@@ -1,5 +1,5 @@
 import { User } from "../models/user.model";
-import { registerSchema, loginSchema } from "../utils/zod";
+import { registerSchema, loginSchema, resetPasswordLink, resetPassword } from "../utils/zod";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -16,6 +16,10 @@ import { Role } from "../models/role.model";
 import { paginationObject } from "../utils/pagination";
 import { LeaveBalance } from "../models/leaveBalance.models";
 import sendEmail from "../helpers/sendEmail";
+import { Token } from "../models/token.model";
+import crypto from "crypto";
+import dotenv from 'dotenv'
+dotenv.config()
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -893,3 +897,69 @@ export const userList = async (req: Request, res: Response) => {
     handleError(res, error);
   }
 };
+
+
+export const forgotPassword = async(req:Request,res:Response)=>{
+try {
+   const parseResult = resetPasswordLink.parse(req.body)
+   const {email} = parseResult;
+
+const user: any= await User.findOne({email:email});
+if(!user){
+  apiResponse(res,StatusCodes.BAD_REQUEST,messages.USER_NOT_FOUND)
+}
+
+let token = await Token.findOne({userId:user._id});
+
+if(!token){
+  token = await Token.create({
+    userId : user._id,
+    token : crypto.randomBytes(32).toString("hex"),
+  })
+  token.save()
+}
+const link = `${process.env.BASE_URL}/password-reset/${user._id}/${token.token}`;
+    await sendEmail({email:user.email, subject:"Password reset", message:link});
+apiResponse(res,StatusCodes.OK,messages.PASSWORD_RESET_LINK,{link:link})
+} catch (error) {
+  handleError(res,error)
+}
+ 
+}
+
+export const resetPasswordForUser = async(req:Request,res:Response)=>{
+  try {
+    const {userId,token}= req.params;
+    const parseResult = resetPassword.parse(req.body);
+
+    const {newPassword,confirmPassword} = parseResult;
+
+    if(newPassword !== confirmPassword){
+      apiResponse(res,StatusCodes.BAD_REQUEST,messages.PASSWORD_NOT_MATCHED)
+    }
+
+
+    const user:any = await User.findById(userId);
+    if(!user){
+      apiResponse(res,StatusCodes.BAD_REQUEST,messages.USER_NOT_FOUND)
+    }
+
+    const storedToken = await Token.findOne({
+      userId : user?._id,
+      token,
+    })
+
+    if(!storedToken){
+      apiResponse(res,StatusCodes.BAD_REQUEST,messages.EXPIRED_TOKEN_OR_LINK)
+    }
+      const hashedPassword = await bcrypt.hash(newPassword,10);
+      user.password= hashedPassword
+
+      await User.findByIdAndUpdate(userId,{new:true,password:hashedPassword});
+
+      await storedToken?.deleteOne()
+      apiResponse(res,StatusCodes.OK,messages.PASSWORD_RESET_SUCCESSFULLY)
+  } catch (error) {
+    handleError(res,error)
+  }
+}

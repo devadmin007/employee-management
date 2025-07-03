@@ -7,6 +7,8 @@ import {
   getAllRole,
   userList,
   updateUser,
+  forgotPassword,
+  resetPasswordForUser,
 } from "../controllers/user.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { authorization } from "../middlewares/validate.middleware";
@@ -194,7 +196,7 @@ userRouter.post("/login", loginUser);
  *                 type: string
  *               uanDetail:
  *                 type: string
- *               previousExperience:        
+ *               previousExperience:
  *                 type: string
  *               currentSalary:
  *                 type: Number
@@ -302,10 +304,7 @@ userRouter.post(
  *         description: Internal server error
  */
 
-userRouter.get(
-  "/fetched-userdetails/:id",
-  getUserId
-);
+userRouter.get("/fetched-userdetails/:id", getUserId);
 
 /**
  * @swagger
@@ -440,7 +439,7 @@ userRouter.put(
  *        '404' :
  *          description : Not found
  */
-userRouter.get('/roles', getAllRole)
+userRouter.get("/roles", getAllRole);
 
 /**
  * @swagger
@@ -450,8 +449,8 @@ userRouter.get('/roles', getAllRole)
  *     tags:
  *       - User Controller
  *     description: >
- *       Returns a list of users with optional filters like search and role.  
- *       You can also disable pagination by setting `pagination=false`.  
+ *       Returns a list of users with optional filters like search and role.
+ *       You can also disable pagination by setting `pagination=false`.
  *       By default, users with the "ADMIN" role are excluded.
  *     parameters:
  *       - in: query
@@ -546,5 +545,84 @@ userRouter.get('/roles', getAllRole)
  *         description: Server error
  */
 
-userRouter.get('/user-list', authMiddleware, userList)
+userRouter.get("/user-list", authMiddleware, userList);
+
+
+
+/**
+ *  @openapi
+ *  /api/resetpassword-link:
+ *    post:
+ *      tags: 
+ *        - User Controller
+ *      security:
+ *        - bearerAuth: []
+ *      summary : Reset Password link 
+ *      requestBody : 
+ *        required : true
+ *        content :
+ *          application/json:
+ *            schema: 
+ *              type: object
+ *              required :
+ *                - email
+ * 
+ *              properties : 
+ *                email :
+ *                  type : string
+ * 
+ *      responses :
+ *        '200':
+ *          description : OK
+ *        '400' : 
+ *          descrription : Bad request
+ *        '404' :
+ *          description : Not found    
+ */
+
+userRouter.post("/resetpassword-link", authMiddleware, forgotPassword);
+
+/**
+ * @openapi
+ * /api/password-reset/{userId}/{token}:
+ *   post:
+ *     tags: 
+ *       - User Controller
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Password Reset 
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               newPassword:
+ *                 type: string
+ *               confirmPassword:
+ *                  type: string
+ *     responses:
+ *       '200':
+ *         description: OK
+ */
+userRouter.post(
+  "/password-reset/:userId/:token",
+  authMiddleware,
+  resetPasswordForUser
+);
 export default userRouter;

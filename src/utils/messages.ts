@@ -109,6 +109,12 @@ export const messages = {
   SALARY_NOT_FOUND: 'Salary has been not fetched',
   SALARY_FOUND: 'Salary has  fetched',
 
+  //FORGOT PASSWORD
+      PASSWORD_RESET_LINK: "password reset link is sent to your email",
+    PASSWORD_NOT_MATCHED : "Passwords do not match",
+    EXPIRED_TOKEN_OR_LINK : "Invalid or link expired",
+    PASSWORD_RESET_SUCCESSFULLY : "Password reset successful",
+
 };
 
 
