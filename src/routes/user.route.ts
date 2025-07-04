@@ -580,7 +580,7 @@ userRouter.get("/user-list", authMiddleware, userList);
  *          description : Not found    
  */
 
-userRouter.post("/resetpassword-link", authMiddleware, forgotPassword);
+userRouter.post("/resetpassword-link", forgotPassword);
 
 /**
  * @openapi
@@ -622,7 +622,7 @@ userRouter.post("/resetpassword-link", authMiddleware, forgotPassword);
  */
 userRouter.post(
   "/password-reset/:userId/:token",
-  authMiddleware,
+
   resetPasswordForUser
 );
 export default userRouter;

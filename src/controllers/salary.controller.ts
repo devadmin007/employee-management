@@ -14,9 +14,9 @@ import { UserDetails } from "../models/userDetails.model";
 
 import { paginationObject } from "../utils/pagination";
 import PDFDocument from "pdfkit";
-import getStream from "get-stream";
+
 import { Cloudinary } from "../utils/cloudinary";
-import { Mongoose } from "mongoose";
+
 import mongoose from "mongoose";
 
 // export const generateSalary = async () => {
