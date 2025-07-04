@@ -918,7 +918,7 @@ if(!token){
   })
   token.save()
 }
-const link = `${process.env.BASE_URL}/password-reset/${user._id}/${token.token}`;
+const link = `${process.env.BASE_URL}?userId=${user._id}&token=${token.token}`;
     await sendEmail({email:user.email, subject:"Password reset", message:link});
 apiResponse(res,StatusCodes.OK,messages.PASSWORD_RESET_LINK,{link:link})
 } catch (error) {
