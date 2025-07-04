@@ -582,22 +582,11 @@ userRouter.post("/resetpassword-link", forgotPassword);
 
 /**
  * @openapi
- * /api/password-reset/{userId}/{token}:
+ * /api/password-reset:
  *   post:
  *     tags: 
  *       - User Controller
  *     summary: Password Reset 
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *       - in: path
- *         name: token
- *         required: true
- *         schema:
- *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -605,19 +594,28 @@ userRouter.post("/resetpassword-link", forgotPassword);
  *           schema:
  *             type: object
  *             required:
+ *               - userId
+ *               - token
  *               - newPassword
  *               - confirmPassword
  *             properties:
+ *               userId:
+ *                 type: string
+ *               token:
+ *                 type: string
  *               newPassword:
  *                 type: string
  *               confirmPassword:
- *                  type: string
+ *                 type: string
  *     responses:
  *       '200':
- *         description: OK
+ *         description: Password reset successfully
+ *       '400':
+ *         description: Bad request
  */
+
 userRouter.post(
-  "/password-reset/:userId/:token",
+  "/password-reset",
 
   resetPasswordForUser
 );

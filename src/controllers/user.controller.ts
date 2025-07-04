@@ -929,7 +929,7 @@ apiResponse(res,StatusCodes.OK,messages.PASSWORD_RESET_LINK,{link:link})
 
 export const resetPasswordForUser = async(req:Request,res:Response)=>{
   try {
-    const {userId,token}= req.params;
+    const {userId,token}= req.body;
     const parseResult = resetPassword.parse(req.body);
 
     const {newPassword,confirmPassword} = parseResult;
