@@ -555,8 +555,6 @@ userRouter.get("/user-list", authMiddleware, userList);
  *    post:
  *      tags: 
  *        - User Controller
- *      security:
- *        - bearerAuth: []
  *      summary : Reset Password link 
  *      requestBody : 
  *        required : true
@@ -588,8 +586,6 @@ userRouter.post("/resetpassword-link", forgotPassword);
  *   post:
  *     tags: 
  *       - User Controller
- *     security:
- *       - bearerAuth: []
  *     summary: Password Reset 
  *     parameters:
  *       - in: path
