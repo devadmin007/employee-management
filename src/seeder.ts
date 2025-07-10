@@ -28,7 +28,7 @@ export const createAdminUser = async () => {
       role: "ADMIN",
       isDeleted: false,
     });
-  
+
 
     const existingAdmin = await User.findOne({ email: adminInfo.email });
     if (existingAdmin) {
