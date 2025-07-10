@@ -13,6 +13,7 @@ export const messages = {
   USER_CREATED: 'User Created Successfully',
   USER_UPDATED: 'User Updated  Successfully',
   USER_LIST: "User list fetched Successfully",
+  USER_DELETED: "User Deleted Successfully",
 
   // MANAGER MESSAGES
   MANAGER_CREATED: "Manager created successfully.",

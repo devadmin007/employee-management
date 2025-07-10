@@ -160,7 +160,7 @@ export const getSalaryList = async (req: any, res: Response) => {
     const pagination = paginationObject(req.query);
 
     const { skip, resultPerPage, sort } = pagination;
-    const match: any = {};
+    const match: any = { isDeleted: false };
     const { search, month } = req.query;
 
     if (
@@ -297,9 +297,8 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
 
     if (salaries.length === 0) {
       return handleError(res, {
-        message: `No salary records found for ${month || ""} ${
-          year || ""
-        }`.trim(),
+        message: `No salary records found for ${month || ""} ${year || ""
+          }`.trim(),
       });
     }
 
@@ -412,22 +411,22 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
       .text(
         "Extra",
         startX +
-          colWidths[0] +
-          colWidths[1] +
-          colWidths[2] +
-          colWidths[3] +
-          colWidths[4],
+        colWidths[0] +
+        colWidths[1] +
+        colWidths[2] +
+        colWidths[3] +
+        colWidths[4],
         startY
       )
       .text(
         "Generated At",
         startX +
-          colWidths[0] +
-          colWidths[1] +
-          colWidths[2] +
-          colWidths[3] +
-          colWidths[4] +
-          colWidths[5],
+        colWidths[0] +
+        colWidths[1] +
+        colWidths[2] +
+        colWidths[3] +
+        colWidths[4] +
+        colWidths[5],
         startY
       );
 
@@ -465,22 +464,22 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
         .text(
           `${salary.extraLeave ?? 0}`,
           startX +
-            colWidths[0] +
-            colWidths[1] +
-            colWidths[2] +
-            colWidths[3] +
-            colWidths[4],
+          colWidths[0] +
+          colWidths[1] +
+          colWidths[2] +
+          colWidths[3] +
+          colWidths[4],
           y
         )
         .text(
           `${moment(salary.generatedAt).format("YYYY-MM-DD")}`,
           startX +
-            colWidths[0] +
-            colWidths[1] +
-            colWidths[2] +
-            colWidths[3] +
-            colWidths[4] +
-            colWidths[5],
+          colWidths[0] +
+          colWidths[1] +
+          colWidths[2] +
+          colWidths[3] +
+          colWidths[4] +
+          colWidths[5],
           y
         );
 

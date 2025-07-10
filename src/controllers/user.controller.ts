@@ -16,6 +16,7 @@ import { Role } from "../models/role.model";
 import { paginationObject } from "../utils/pagination";
 import { LeaveBalance } from "../models/leaveBalance.models";
 import sendEmail from "../helpers/sendEmail";
+import { Leave } from "../models/leave.model";
 
 export const createUser = async (req: Request, res: Response) => {
   try {
@@ -36,7 +37,7 @@ export const createUser = async (req: Request, res: Response) => {
     };
 
     const currentMonth = moment().month();
-    const remainingMonths = 12 - currentMonth ;
+    const remainingMonths = 12 - currentMonth;
     const monthlyLeave = 1;
     const totalLeave = remainingMonths * monthlyLeave;
 
@@ -139,7 +140,6 @@ export const userCreate = async (req: Request, res: Response) => {
 
     let user;
     let userId = req.body.userId;
-
     // Step 1: Create User and UserDetails
     if (stepNumber === 1) {
       const {
@@ -160,6 +160,7 @@ export const userCreate = async (req: Request, res: Response) => {
         return handleError(res, { message: "Image is required" });
       }
       const existingUser = await User.findOne({ email: email });
+      let roledata = await Role.findById({ _id: role }).select('role')
 
       if (existingUser) {
         return apiResponse(
@@ -230,6 +231,7 @@ export const userCreate = async (req: Request, res: Response) => {
         userId: savedUser._id,
         email: savedUser.email,
         employeeId: savedUser.employeeId,
+        roledata
       });
     }
 
@@ -510,7 +512,7 @@ export const getUserId = async (req: Request, res: Response) => {
           preserveNullAndEmptyArrays: true,
         },
       },
-      
+
 
       // Final projection
       {
@@ -522,7 +524,7 @@ export const getUserId = async (req: Request, res: Response) => {
         },
       },
     ]);
-   
+
     if (!userWithDetails || userWithDetails.length === 0) {
       return apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
     }
@@ -566,6 +568,7 @@ export const updateUser = async (req: Request, res: Response) => {
         gender,
         dateOfBirth,
       } = req.body;
+      let roledata = await Role.findById({ _id: req.body.role }).select('role')
       let parsePermententAddress: any;
       if (typeof permenentAddress === "string") {
         parsePermententAddress = JSON.parse(permenentAddress);
@@ -680,7 +683,7 @@ export const updateUser = async (req: Request, res: Response) => {
       }
 
       const joinMonth = moment(joiningDate).month(); // 0 = Jan, 11 = Dec
-      const remainingMonths = 12 - joinMonth ;
+      const remainingMonths = 12 - joinMonth;
       const monthlyLeave = 1;
       const totalLeave = remainingMonths * monthlyLeave;
 
@@ -876,3 +879,18 @@ export const userList = async (req: Request, res: Response) => {
     handleError(res, error);
   }
 };
+
+export const userDelete = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id
+
+    await Leave.findOneAndUpdate({ employeeId: userId }, { isDeleted: true })
+    await LeaveBalance.findOneAndUpdate({ employeeId: userId }, { isDeleted: true })
+    await UserDetails.findOneAndUpdate({ userId: userId }, { isDeleted: true })
+    await User.findOneAndUpdate({ _id: userId }, { isDeleted: true })
+    apiResponse(res, StatusCodes.OK, messages.USER_DELETED, true);
+  } catch (error) {
+    console.error("Aggregation Error:", error);
+    handleError(res, error);
+  }
+}
