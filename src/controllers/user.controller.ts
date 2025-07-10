@@ -19,6 +19,7 @@ import sendEmail from "../helpers/sendEmail";
 import { Token } from "../models/token.model";
 import crypto from "crypto";
 import dotenv from 'dotenv'
+import { Leave } from "../models/leave.model";
 dotenv.config()
 
 export const createUser = async (req: Request, res: Response) => {
@@ -40,7 +41,7 @@ export const createUser = async (req: Request, res: Response) => {
     };
 
     const currentMonth = moment().month();
-    const remainingMonths = 12 - currentMonth ;
+    const remainingMonths = 12 - currentMonth;
     const monthlyLeave = 1;
     const totalLeave = remainingMonths * monthlyLeave;
 
@@ -143,7 +144,6 @@ export const userCreate = async (req: Request, res: Response) => {
 
     let user;
     let userId = req.body.userId;
-
     // Step 1: Create User and UserDetails
     if (stepNumber === 1) {
       const {
@@ -164,6 +164,7 @@ export const userCreate = async (req: Request, res: Response) => {
         return handleError(res, { message: "Image is required" });
       }
       const existingUser = await User.findOne({ email: email });
+      let roledata = await Role.findById({ _id: role }).select('role')
 
       if (existingUser) {
         return apiResponse(
@@ -234,6 +235,7 @@ export const userCreate = async (req: Request, res: Response) => {
         userId: savedUser._id,
         email: savedUser.email,
         employeeId: savedUser.employeeId,
+        roledata
       });
     }
 
@@ -514,7 +516,7 @@ export const getUserId = async (req: Request, res: Response) => {
           preserveNullAndEmptyArrays: true,
         },
       },
-      
+
 
       // Final projection
       {
@@ -526,7 +528,7 @@ export const getUserId = async (req: Request, res: Response) => {
         },
       },
     ]);
-   
+
     if (!userWithDetails || userWithDetails.length === 0) {
       return apiResponse(res, StatusCodes.NOT_FOUND, messages.USER_NOT_FOUND);
     }
@@ -570,6 +572,7 @@ export const updateUser = async (req: Request, res: Response) => {
         gender,
         dateOfBirth,
       } = req.body;
+      let roledata = await Role.findById({ _id: req.body.role }).select('role')
       let parsePermententAddress: any;
       if (typeof permenentAddress === "string") {
         parsePermententAddress = JSON.parse(permenentAddress);
@@ -684,7 +687,7 @@ export const updateUser = async (req: Request, res: Response) => {
       }
 
       const joinMonth = moment(joiningDate).month(); // 0 = Jan, 11 = Dec
-      const remainingMonths = 12 - joinMonth ;
+      const remainingMonths = 12 - joinMonth;
       const monthlyLeave = 1;
       const totalLeave = remainingMonths * monthlyLeave;
 
@@ -809,7 +812,7 @@ export const userList = async (req: Request, res: Response) => {
           localField: "_id",
           foreignField: "employeeId",
           as: "leaveDetail",
-          pipeline: [{ $project: { _id: 1, leave: 1 ,usedLeave:1} }],
+          pipeline: [{ $project: { _id: 1, leave: 1, usedLeave: 1 } }],
         },
       },
       {
@@ -876,7 +879,7 @@ export const userList = async (req: Request, res: Response) => {
         createdAt: 1,
         updatedAt: 1,
         role: "$userRole.role",
-        totalLeave:"$leaveDetail.leave",
+        totalLeave: "$leaveDetail.leave",
         usedLeave: "$leaveDetail.usedLeave"
       },
     });
@@ -899,67 +902,82 @@ export const userList = async (req: Request, res: Response) => {
 };
 
 
-export const forgotPassword = async(req:Request,res:Response)=>{
-try {
-   const parseResult = resetPasswordLink.parse(req.body)
-   const {email} = parseResult;
-
-const user: any= await User.findOne({email:email});
-if(!user){
-  apiResponse(res,StatusCodes.BAD_REQUEST,messages.USER_NOT_FOUND)
-}
-
-let token = await Token.findOne({userId:user._id});
-
-if(!token){
-  token = await Token.create({
-    userId : user._id,
-    token : crypto.randomBytes(32).toString("hex"),
-  })
-  token.save()
-}
-const link = `${process.env.BASE_URL}?userId=${user._id}&token=${token.token}`;
-    await sendEmail({email:user.email, subject:"Password reset", message:link});
-apiResponse(res,StatusCodes.OK,messages.PASSWORD_RESET_LINK,{link:link})
-} catch (error) {
-  handleError(res,error)
-}
- 
-}
-
-export const resetPasswordForUser = async(req:Request,res:Response)=>{
+export const forgotPassword = async (req: Request, res: Response) => {
   try {
-    const {userId,token}= req.body;
+    const parseResult = resetPasswordLink.parse(req.body)
+    const { email } = parseResult;
+
+    const user: any = await User.findOne({ email: email });
+    if (!user) {
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.USER_NOT_FOUND)
+    }
+
+    let token = await Token.findOne({ userId: user._id });
+
+    if (!token) {
+      token = await Token.create({
+        userId: user._id,
+        token: crypto.randomBytes(32).toString("hex"),
+      })
+      token.save()
+    }
+    const link = `${process.env.BASE_URL}?userId=${user._id}&token=${token.token}`;
+    await sendEmail({ email: user.email, subject: "Password reset", message: link });
+    apiResponse(res, StatusCodes.OK, messages.PASSWORD_RESET_LINK, { link: link })
+  } catch (error) {
+    handleError(res, error)
+  }
+
+}
+
+export const resetPasswordForUser = async (req: Request, res: Response) => {
+  try {
+    const { userId, token } = req.body;
     const parseResult = resetPassword.parse(req.body);
 
-    const {newPassword,confirmPassword} = parseResult;
+    const { newPassword, confirmPassword } = parseResult;
 
-    if(newPassword !== confirmPassword){
-      apiResponse(res,StatusCodes.BAD_REQUEST,messages.PASSWORD_NOT_MATCHED)
+    if (newPassword !== confirmPassword) {
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.PASSWORD_NOT_MATCHED)
     }
 
 
-    const user:any = await User.findById(userId);
-    if(!user){
-      apiResponse(res,StatusCodes.BAD_REQUEST,messages.USER_NOT_FOUND)
+    const user: any = await User.findById(userId);
+    if (!user) {
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.USER_NOT_FOUND)
     }
 
     const storedToken = await Token.findOne({
-      userId : user?._id,
+      userId: user?._id,
       token,
     })
 
-    if(!storedToken){
-      apiResponse(res,StatusCodes.BAD_REQUEST,messages.EXPIRED_TOKEN_OR_LINK)
+    if (!storedToken) {
+      apiResponse(res, StatusCodes.BAD_REQUEST, messages.EXPIRED_TOKEN_OR_LINK)
     }
-      const hashedPassword = await bcrypt.hash(newPassword,10);
-      user.password= hashedPassword
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword
 
-      await User.findByIdAndUpdate(userId,{new:true,password:hashedPassword});
+    await User.findByIdAndUpdate(userId, { new: true, password: hashedPassword });
 
-      await storedToken?.deleteOne()
-      apiResponse(res,StatusCodes.OK,messages.PASSWORD_RESET_SUCCESSFULLY)
+    await storedToken?.deleteOne()
+    apiResponse(res, StatusCodes.OK, messages.PASSWORD_RESET_SUCCESSFULLY)
   } catch (error) {
-    handleError(res,error)
+    handleError(res, error)
+  }
+}
+
+export const userDelete = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id
+
+    await Leave.findOneAndUpdate({ employeeId: userId }, { isDeleted: true })
+    await LeaveBalance.findOneAndUpdate({ employeeId: userId }, { isDeleted: true })
+    await UserDetails.findOneAndUpdate({ userId: userId }, { isDeleted: true })
+    await User.findOneAndUpdate({ _id: userId }, { isDeleted: true })
+    apiResponse(res, StatusCodes.OK, messages.USER_DELETED, true);
+  } catch (error) {
+    console.error("Aggregation Error:", error);
+    handleError(res, error);
   }
 }

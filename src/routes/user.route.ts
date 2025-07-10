@@ -9,6 +9,7 @@ import {
   updateUser,
   forgotPassword,
   resetPasswordForUser,
+  userDelete,
 } from "../controllers/user.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import { authorization } from "../middlewares/validate.middleware";
@@ -619,4 +620,39 @@ userRouter.post(
 
   resetPasswordForUser
 );
+
+userRouter.get('/user-list', authMiddleware, userList)
+
+/**
+ * @swagger
+ * /api/user-delete/{id}:
+ *   delete:
+ *     summary: delete user
+ *     tags: [User Controller]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 664b112b943ea05a2f27318c
+ *         description: MongoDB ObjectId of the user
+ *     responses:
+ *       200:
+ *         description: User fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: User Delete successfully
+ */
+userRouter.delete('/user-delete/:id', authMiddleware, userDelete)
 export default userRouter;
