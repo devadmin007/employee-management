@@ -923,7 +923,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
     const link = `${process.env.BASE_URL}?userId=${user._id}&token=${token.token}`;
     // Create HTML message with a button
-const htmlMessage = `
+    const htmlMessage = `
   <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
     <h2>Password Reset Request</h2>
     <p>Hello,</p>
