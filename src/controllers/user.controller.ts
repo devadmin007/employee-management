@@ -922,7 +922,28 @@ export const forgotPassword = async (req: Request, res: Response) => {
       token.save()
     }
     const link = `${process.env.BASE_URL}?userId=${user._id}&token=${token.token}`;
-    await sendEmail({ email: user.email, subject: "Password reset", message: link });
+    // Create HTML message with a button
+const htmlMessage = `
+  <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+    <h2>Password Reset Request</h2>
+    <p>Hello,</p>
+    <p>You requested to reset your password. Click the button below to reset it:</p>
+    <a href="${link}" style="
+      display: inline-block;
+      padding: 12px 20px;
+      margin: 20px 0;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+    ">Reset Password</a>
+ 
+    <p>If you didn’t request this, you can safely ignore this email.</p>
+    <p>Thanks,<br />Team Technithunder</p>
+  </div>
+`;
+    await sendEmail({ email: user.email, subject: "Password reset", message: htmlMessage });
     apiResponse(res, StatusCodes.OK, messages.PASSWORD_RESET_LINK, { link: link })
   } catch (error) {
     handleError(res, error)

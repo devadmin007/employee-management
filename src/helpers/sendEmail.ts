@@ -19,17 +19,17 @@ const sendEmail = async (payload: EmailPayload): Promise<void> => {
         pass: 'nbunbakymdzdlnbi',
       },
     });
-    console.log(payload, 'snwksnjkns')
+  
     const mailOptions = {
       from: 'keyurmodi2508@gmail.com',
       to: payload.email,
       subject: payload.subject,
       html: payload.message,
     };
-    console.log(mailOptions, ".................");
+   
 
     await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully");
+
   } catch (error: any) {
     throw new Error(`Failed to send email: ${error}`);
   }
