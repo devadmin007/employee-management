@@ -1,4 +1,4 @@
-import { Document, Types, Schema, model } from "mongoose";
+import { Document, Types, Schema, model, Double } from "mongoose";
 
 export interface Address {
   street: string;
@@ -30,7 +30,7 @@ export interface UserDetails {
   aadharNo: string;
   personalNumber: string;
   currentSalary: number;
-  previousExperience: string;
+  previousExperience: Number;
   pfNo: string;
   uanDetail: string;
   teamId: Types.ObjectId;
@@ -108,7 +108,7 @@ const userDetailSchema = new Schema<UserDetailsDocument>(
       type: Number,
     },
     previousExperience: {
-      type: String,
+      type: Number,
     },
     pfNo: {
       type: String,
