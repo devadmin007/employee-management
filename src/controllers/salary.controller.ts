@@ -19,66 +19,7 @@ import { Cloudinary } from "../utils/cloudinary";
 
 import mongoose from "mongoose";
 
-// export const generateSalary = async () => {
-//   try {
-//     console.log('24===')
-//     const generatedAt = new Date();
-//     const currentMonth = moment(generatedAt).format("MMMM");
-//     const currentYear = moment(generatedAt).year();
-//     const totalDays = moment(
-//       `${currentMonth} ${currentYear}`,
-//       "MMMM YYYY"
-//     ).daysInMonth();
 
-//     const users = await User.find({ isDeleted: false });
-
-//     for (const user of users) {
-//       const employeeId = user._id;
-
-//       const userDetails = await UserDetails.findOne({ userId: employeeId });
-
-//       if (!userDetails || !userDetails.currentSalary) continue;
-
-//       const baseSalary = userDetails.currentSalary;
-
-//       const existingSalary = await Salary.findOne({
-//         employeeId,
-//         month: currentMonth,
-//       });
-
-//       if (existingSalary) continue;
-
-//       const leaveBalance: any = await LeaveBalance.findOne({
-//         employeeId: employeeId,
-//       });
-// console.log(leaveBalance);
-
-//       const balance = leaveBalance?.leave;
-//       const extraLeave = leaveBalance?.extraLeave;
-
-//       let leaveDeduct = 0;
-
-//       if (balance <= 0 && extraLeave > 0) {
-//         const perDay = baseSalary / totalDays;
-//         leaveDeduct = perDay * extraLeave;
-//       }
-//       const netSalary = baseSalary - leaveDeduct;
-//       console.log(currentMonth);
-//       await Salary.create({
-//         employeeId,
-//         leaveDeducation: leaveDeduct,
-//         netSalary,
-//         generatedAt:new Date(),
-//         month: currentMonth,
-//         extraLeave,
-//       });
-
-//       console.log("salary generated completed");
-//     }
-//   } catch (error) {
-//     console.log(`error during salary generation`);
-//   }
-// };
 
 export const generateSalary = async () => {
   try {
@@ -144,13 +85,13 @@ export const generateSalary = async () => {
         });
         leaveBalance.extraLeave = 0;
         await leaveBalance.save();
-        console.log(` Salary generated for ${employeeId}`);
+   
       } catch (err) {
         console.error(` Failed to generate salary for ${employeeId}:`, err);
       }
     }
 
-    console.log(" Salary generation completed for all users.");
+
   } catch (error) {
     console.error(" Error during salary generation:", error);
   }
@@ -168,7 +109,7 @@ export const getSalaryList = async (req: any, res: Response) => {
       req.userInfo.role.role === "EMPLOYEE" ||
       req.userInfo.role.role === "PROJECT_MANAGER"
     ) {
-      console.log(req.userInfo);
+     
       match.employeeId = new mongoose.Types.ObjectId(req.userInfo.id);
     }
     if (month) {

@@ -338,9 +338,7 @@ export const userCreate = async (req: Request, res: Response) => {
           employeeId: user._id,
           extraLeave: 0,
         });
-      } else {
-        console.log("LeaveBalance already exists for:", user._id);
-      }
+      } 
     }
 
     if (stepNumber === 4) {
@@ -678,7 +676,7 @@ export const updateUser = async (req: Request, res: Response) => {
       });
 
       const user = await User.findById(userId);
-      console.log(user, "myuser");
+     
 
       if (!user) {
         return handleError(res, {
