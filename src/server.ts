@@ -2,9 +2,10 @@ import app from "./app";
 import dotenv from "dotenv";
 import { connectDB } from "./config/connection";
 import { setupSwagger } from "./utils/swagger";
-import nodeCron from "node-cron";
+
 import { createAdminUser, seedRole } from "./seeder";
-import { generateSalary } from "./controllers/salary.controller";
+import cronJob from "./helpers/cron";
+
 dotenv.config();
 
 const start = async () => {
@@ -14,8 +15,9 @@ const start = async () => {
 
 
 
+  cronJob();
 
-  console.log(process.env.PORT)
+  console.log(process.env.PORT);
   app.listen(process.env.PORT, () => {
     console.log(
       `🚀 Server running on port ${process.env.PORT} in ${process.env.NODE_ENV} mode`
