@@ -18,83 +18,332 @@ import PDFDocument from "pdfkit";
 import { Cloudinary } from "../utils/cloudinary";
 
 import mongoose from "mongoose";
+import { log } from "console";
+import { Leave } from "../models/leave.model";
+
+// export const generateSalary = async () => {
+//   try {
+//     const generatedAt = new Date();
+//     const currentMonth = moment(generatedAt).format("MMMM");
+//     const currentYear = moment(generatedAt).year();
+//     const totalDays = moment(
+//       `${currentMonth} ${currentYear}`,
+//       "MMMM YYYY"
+//     ).daysInMonth();
+
+//     const users = await User.find({ isDeleted: false });
+
+//     for (const user of users) {
+//       const employeeId = user._id;
+
+//       const userDetails = await UserDetails.findOne({ userId: employeeId });
+//       // console.log(userDetails);
+
+//       if (!userDetails) {
+//         continue;
+//       }
+
+//       if (!userDetails.currentSalary) {
+//         continue;
+//       }
+
+//       const baseSalary = userDetails.currentSalary;
+
+//       const existingSalary = await Salary.findOne({
+//         employeeId,
+//         month: currentMonth,
+//       });
+//       // console.log(existingSalary,";;;;;;;;;;;;;;;;;;;;;");
+
+//       if (existingSalary) {
+//         continue;
+//       }
+
+//       const leaveBalance: any = await LeaveBalance.findOne({ employeeId });
+
+//       if (!leaveBalance) {
+//       }
+
+//       const balance = leaveBalance?.leave ?? 0;
+//       const extraLeave = leaveBalance?.extraLeave ?? 0;
+
+//       let leaveDeduct = 0;
+
+//       if (balance <= 0 && extraLeave > 0) {
+//         const perDay = baseSalary / totalDays;
+//         leaveDeduct = perDay * extraLeave;
+//       }
+
+//       const netSalary = baseSalary - leaveDeduct;
+
+//       try {
+//         await Salary.create({
+//           employeeId,
+//           leaveDeducation: leaveDeduct,
+//           netSalary,
+//           generatedAt: new Date(),
+//           month: currentMonth,
+//           extraLeave,
+//         });
+//         leaveBalance.extraLeave = 0;
+//         await leaveBalance.save();
+//         console.log("salary generated");
+//       } catch (err) {
+//         console.error(` Failed to generate salary for ${employeeId}:`, err);
+//       }
+//     }
+//   } catch (error) {
+//     console.error(" Error during salary generation:", error);
+//   }
+// };
+////////////////////////////////////////
+
+
+
+
 
 export const generateSalary = async () => {
+
   try {
+
     const generatedAt = new Date();
+
+    // Current month, year and total days in this month
+
     const currentMonth = moment(generatedAt).format("MMMM");
+
     const currentYear = moment(generatedAt).year();
-    const totalDays = moment(
-      `${currentMonth} ${currentYear}`,
-      "MMMM YYYY"
-    ).daysInMonth();
 
-    const users = await User.find({ isDeleted: false });
+    const totalDays = moment(generatedAt).daysInMonth();
+ 
+    // Start and end dates of the current month
 
+    const monthStart = moment(generatedAt).startOf("month").toDate();
+
+    const monthEnd = moment(generatedAt).endOf("month").toDate();
+ 
+    // Utility function to calculate working leave days excluding weekends
+
+    function getWorkingLeaveDaysInMonth(leaveStart: Date, leaveEnd: Date, monthStart: Date, monthEnd: Date): number {
+
+      // Clamp leave dates within the month boundaries
+
+      const start = leaveStart < monthStart ? monthStart : leaveStart;
+
+      const end = leaveEnd > monthEnd ? monthEnd : leaveEnd;
+ 
+      if (end < start) return 0;
+ 
+      let count = 0;
+
+      let current = new Date(start);
+
+      while (current <= end) {
+
+        const day = current.getDay();
+
+        if (day !== 0 && day !== 6) { // Skip Sunday (0) and Saturday (6)
+
+          count++;
+
+        }
+
+        current.setDate(current.getDate() + 1);
+
+      }
+
+      return count;
+
+    }
+ 
+    // Fetch all active users
+
+    const users = await User.find({ isDeleted:false });
+ 
     for (const user of users) {
+
       const employeeId = user._id;
+ 
+      // Fetch user details for salary info
 
       const userDetails = await UserDetails.findOne({ userId: employeeId });
-      // console.log(userDetails);
 
-      if (!userDetails) {
+      if (!userDetails || !userDetails.currentSalary) {
+
+        console.log(`Skipping user ${employeeId} due to missing salary info`);
+
         continue;
-      }
 
-      if (!userDetails.currentSalary) {
-        continue;
       }
-
+ 
       const baseSalary = userDetails.currentSalary;
+ 
+      // Skip if salary already generated for current month
 
-      const existingSalary = await Salary.findOne({
-        employeeId,
-        month: currentMonth,
-      });
-      // console.log(existingSalary,";;;;;;;;;;;;;;;;;;;;;");
+      const existingSalary = await Salary.findOne({ employeeId, month: currentMonth });
 
       if (existingSalary) {
-        continue;
-      }
 
-      const leaveBalance: any = await LeaveBalance.findOne({ employeeId });
+        console.log(`Salary already generated for user ${employeeId} for month ${currentMonth}`);
+
+        continue;
+
+      }
+ 
+      // Fetch current leave balance and extra leaves
+
+      const leaveBalance = await LeaveBalance.findOne({ employeeId });
 
       if (!leaveBalance) {
+
+        console.log(`No leave balance for user ${employeeId}, skipping leave deduction`);
+
+        continue;
+
       }
+ 
+      // Find all approved (or appropriate status) leaves overlapping this month
 
-      const balance = leaveBalance?.leave ?? 0;
-      const extraLeave = leaveBalance?.extraLeave ?? 0;
+      const leaves = await Leave.find({
 
-      let leaveDeduct = 0;
+        employeeId: employeeId,
 
-      if (balance <= 0 && extraLeave > 0) {
-        const perDay = baseSalary / totalDays;
-        leaveDeduct = perDay * extraLeave;
+        status: "APPROVED",          // Consider only approved leaves for deduction
+
+        isDeleted: false,
+
+        startDate: { $lte: monthEnd },
+
+        endDate: { $gte: monthStart },
+
+      });
+ 
+      // Calculate total leave days in current month excluding weekends
+
+      let totalLeaveDays = 0;
+
+      leaves.forEach((leave:any) => {
+
+        const leaveDays = getWorkingLeaveDaysInMonth(
+
+          leave.startDate,
+
+          leave.endDate,
+
+          monthStart,
+
+          monthEnd
+
+        );
+ 
+        // TODO: Add adjustment for half-days (start_leave_type/end_leave_type)
+
+        // For now, counting full days
+
+        totalLeaveDays += leaveDays;
+
+      });
+ 
+      // Calculate how many leaves can be covered by available balance
+
+      const leaveBalanceAmount = leaveBalance.leave ?? 0;
+
+      let deductibleLeaves = 0;
+
+      let extraLeaveDeducted = 0;
+ 
+      if (totalLeaveDays <= leaveBalanceAmount) {
+
+        // All leaves can be covered by leave balance - no salary deduction
+
+        deductibleLeaves = 0;
+
+        leaveBalance.leave = leaveBalanceAmount - totalLeaveDays;
+
+      } else {
+
+        // Partial leave coverage
+
+        deductibleLeaves = totalLeaveDays - leaveBalanceAmount;
+
+        leaveBalance.leave = 0;
+ 
+        // Deduct from extra leave if available
+
+        const extraLeaveAvailable = leaveBalance.extraLeave ?? 0;
+
+        if (deductibleLeaves <= extraLeaveAvailable) {
+
+          extraLeaveDeducted = deductibleLeaves;
+
+          deductibleLeaves = 0;
+
+          leaveBalance.extraLeave = extraLeaveAvailable - extraLeaveDeducted;
+
+        } else {
+
+          extraLeaveDeducted = extraLeaveAvailable;
+
+          deductibleLeaves -= extraLeaveAvailable;
+
+          leaveBalance.extraLeave = 0;
+
+        }
+
       }
+ 
+      // Calculate per day salary based on total days in month
 
-      const netSalary = baseSalary - leaveDeduct;
+      const perDaySalary = baseSalary / totalDays;
+ 
+      // Salary deduction = leave days needing deduction * per day salary
 
-      try {
-        await Salary.create({
-          employeeId,
-          leaveDeducation: leaveDeduct,
-          netSalary,
-          generatedAt: new Date(),
-          month: currentMonth,
-          extraLeave,
-        });
-        leaveBalance.extraLeave = 0;
-        await leaveBalance.save();
-        console.log("salary generated");
-      } catch (err) {
-        console.error(` Failed to generate salary for ${employeeId}:`, err);
-      }
+      const leaveDeduction = deductibleLeaves * perDaySalary;
+ 
+      // Net salary after deduction
+
+      const netSalary = baseSalary - leaveDeduction;
+ 
+      // Save updated leave balances
+
+      await leaveBalance.save();
+ 
+      // Create salary record
+
+      await Salary.create({
+
+        employeeId: employeeId,
+
+        baseSalary,
+
+        leaveDays: totalLeaveDays,
+
+        leaveDeducation: leaveDeduction,
+
+        netSalary,
+
+        generatedAt,
+
+        month: currentMonth,
+
+        extraLeaveDeducted,
+
+      });
+ 
+      console.log(`Salary generated for user ${employeeId} for month ${currentMonth}`);
+
     }
-  } catch (error) {
-    console.error(" Error during salary generation:", error);
-  }
-};
+ 
+    console.log("Salary generation completed for all users.");
 
+  } catch (error) {
+
+    console.error("Error during salary generation:", error);
+
+  }
+
+}
+ 
 export const getSalaryList = async (req: any, res: Response) => {
   try {
     const pagination = paginationObject(req.query);
@@ -191,9 +440,11 @@ export const getSalaryById = async (req: Request, res: Response) => {
       path: "employeeId",
       select: "-password",
     });
+    console.log(salary,"...............")
+    // const salary = await Salary.findById(salaryId).select("-employeeId");
 
     if (!salary) {
-       apiResponse(
+      return apiResponse(
         res,
         StatusCodes.BAD_REQUEST,
         messages.SALARY_NOT_FOUND
