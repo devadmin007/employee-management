@@ -19,8 +19,6 @@ import { Cloudinary } from "../utils/cloudinary";
 
 import mongoose from "mongoose";
 
-
-
 export const generateSalary = async () => {
   try {
     const generatedAt = new Date();
@@ -37,6 +35,7 @@ export const generateSalary = async () => {
       const employeeId = user._id;
 
       const userDetails = await UserDetails.findOne({ userId: employeeId });
+      // console.log(userDetails);
 
       if (!userDetails) {
         continue;
@@ -47,11 +46,12 @@ export const generateSalary = async () => {
       }
 
       const baseSalary = userDetails.currentSalary;
-
+await Salary.deleteOne({ employeeId, month: currentMonth });
       const existingSalary = await Salary.findOne({
         employeeId,
         month: currentMonth,
       });
+      // console.log(existingSalary,";;;;;;;;;;;;;;;;;;;;;");
 
       if (existingSalary) {
         continue;
@@ -85,13 +85,11 @@ export const generateSalary = async () => {
         });
         leaveBalance.extraLeave = 0;
         await leaveBalance.save();
-   
+        console.log("salary generated");
       } catch (err) {
         console.error(` Failed to generate salary for ${employeeId}:`, err);
       }
     }
-
-
   } catch (error) {
     console.error(" Error during salary generation:", error);
   }
@@ -109,7 +107,6 @@ export const getSalaryList = async (req: any, res: Response) => {
       req.userInfo.role.role === "EMPLOYEE" ||
       req.userInfo.role.role === "PROJECT_MANAGER"
     ) {
-     
       match.employeeId = new mongoose.Types.ObjectId(req.userInfo.id);
     }
     if (month) {
@@ -156,7 +153,7 @@ export const getSalaryList = async (req: any, res: Response) => {
           createdAt: 1,
           updatedAt: 1,
           employee_full_name: 1,
-          extraLeave: 1
+          extraLeave: 1,
         },
       },
       { $sort: sort },
@@ -239,8 +236,9 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
 
     if (salaries.length === 0) {
       return handleError(res, {
-        message: `No salary records found for ${month || ""} ${year || ""
-          }`.trim(),
+        message: `No salary records found for ${month || ""} ${
+          year || ""
+        }`.trim(),
       });
     }
 
@@ -353,22 +351,22 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
       .text(
         "Extra",
         startX +
-        colWidths[0] +
-        colWidths[1] +
-        colWidths[2] +
-        colWidths[3] +
-        colWidths[4],
+          colWidths[0] +
+          colWidths[1] +
+          colWidths[2] +
+          colWidths[3] +
+          colWidths[4],
         startY
       )
       .text(
         "Generated At",
         startX +
-        colWidths[0] +
-        colWidths[1] +
-        colWidths[2] +
-        colWidths[3] +
-        colWidths[4] +
-        colWidths[5],
+          colWidths[0] +
+          colWidths[1] +
+          colWidths[2] +
+          colWidths[3] +
+          colWidths[4] +
+          colWidths[5],
         startY
       );
 
@@ -406,22 +404,22 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
         .text(
           `${salary.extraLeave ?? 0}`,
           startX +
-          colWidths[0] +
-          colWidths[1] +
-          colWidths[2] +
-          colWidths[3] +
-          colWidths[4],
+            colWidths[0] +
+            colWidths[1] +
+            colWidths[2] +
+            colWidths[3] +
+            colWidths[4],
           y
         )
         .text(
           `${moment(salary.generatedAt).format("YYYY-MM-DD")}`,
           startX +
-          colWidths[0] +
-          colWidths[1] +
-          colWidths[2] +
-          colWidths[3] +
-          colWidths[4] +
-          colWidths[5],
+            colWidths[0] +
+            colWidths[1] +
+            colWidths[2] +
+            colWidths[3] +
+            colWidths[4] +
+            colWidths[5],
           y
         );
 
