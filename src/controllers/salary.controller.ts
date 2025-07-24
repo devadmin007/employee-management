@@ -193,7 +193,7 @@ export const getSalaryById = async (req: Request, res: Response) => {
     });
 
     if (!salary) {
-      return apiResponse(
+       apiResponse(
         res,
         StatusCodes.BAD_REQUEST,
         messages.SALARY_NOT_FOUND
