@@ -46,7 +46,7 @@ export const generateSalary = async () => {
       }
 
       const baseSalary = userDetails.currentSalary;
-await Salary.deleteOne({ employeeId, month: currentMonth });
+
       const existingSalary = await Salary.findOne({
         employeeId,
         month: currentMonth,
