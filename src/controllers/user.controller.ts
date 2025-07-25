@@ -750,6 +750,157 @@ export const getAllRole = async (req: Request, res: Response) => {
   }
 };
 
+// export const userList = async (req: Request, res: Response) => {
+//   try {
+//     const { search, role, pagination } = req.query;
+
+//     const query: any = { isDeleted: false, isActive: true };
+//     const isPaginationEnabled = pagination !== "false";
+
+//     let filterRoleId: Types.ObjectId | null = null;
+//     if (role && Types.ObjectId.isValid(role as string)) {
+//       filterRoleId = new Types.ObjectId(role as string);
+//     }
+
+//     // Shared base pipeline (used for both count and data)
+//     const basePipeline: any[] = [
+//       {
+//         $addFields: {
+//           fullName: { $concat: ["$firstName", " ", "$lastName"] },
+//         },
+//       },
+//       { $match: query },
+//       {
+//         $lookup: {
+//           from: "userdetails",
+//           localField: "_id",
+//           foreignField: "userId",
+//           as: "userDetails",
+//         },
+//       },
+//       {
+//         $unwind: {
+//           path: "$userDetails",
+//           preserveNullAndEmptyArrays: true,
+//         },
+//       },
+//       {
+//         $lookup: {
+//           from: "roles",
+//           localField: "role",
+//           foreignField: "_id",
+//           as: "userRole",
+//         },
+//       },
+//       {
+//         $unwind: {
+//           path: "$userRole",
+//           preserveNullAndEmptyArrays: true,
+//         },
+//       },
+//       {
+//         $match: {
+//           ...(filterRoleId && { role: filterRoleId }),
+//           "userRole.role": { $ne: "ADMIN" },
+//         },
+//       },
+//       {
+//         $lookup: {
+//           from: "leavebalances",
+//           localField: "_id",
+//           foreignField: "employeeId",
+//           as: "leaveDetail",
+//           pipeline: [{ $project: { _id: 1, leave: 1, usedLeave: 1 } }],
+//         },
+//       },
+//       {
+//         $unwind: {
+//           path: "$leaveDetail",
+//           preserveNullAndEmptyArrays: true,
+//         },
+//       },
+//     ];
+
+//     // Add search filter
+//     if (search) {
+//       basePipeline.push({
+//         $match: {
+//           $or: [
+//             { fullName: { $regex: search, $options: "i" } },
+//             { firstName: { $regex: search, $options: "i" } },
+//             { lastName: { $regex: search, $options: "i" } },
+//             { email: { $regex: search, $options: "i" } },
+//           ],
+//         },
+//       });
+//     }
+
+//     // If pagination is disabled and no role is passed, fetch only project managers
+//     if (!isPaginationEnabled && !filterRoleId) {
+//       basePipeline.push({
+//         $match: {
+//           "userRole.role": "PROJECT_MANAGER",
+//         },
+//       });
+//     }
+
+//     // Clone base pipeline for count query
+//     const countPipeline = JSON.parse(JSON.stringify(basePipeline));
+//     countPipeline.push({ $count: "total" });
+
+//     // Run count query
+//     const countResult = await User.aggregate(countPipeline);
+//     const totalUser = countResult[0]?.total || 0;
+
+//     // Prepare final pipeline for user data
+//     const dataPipeline = [...basePipeline];
+
+//     // Apply sort and pagination
+//     if (isPaginationEnabled) {
+//       const paginationData = paginationObject(req.query);
+//       dataPipeline.push({ $sort: paginationData.sort || { createdAt: -1 } });
+//       dataPipeline.push({ $skip: paginationData.skip || 0 });
+//       dataPipeline.push({ $limit: paginationData.resultPerPage || 10 });
+//     } else {
+//       dataPipeline.push({ $sort: { createdAt: -1 } });
+//     }
+
+//     // Final projection
+//     dataPipeline.push({
+//       $project: {
+//         firstName: 1,
+//         lastName: 1,
+//         fullName: 1,
+//         email: 1,
+//         isDeleted: 1,
+//         isActive: 1,
+//         createdAt: 1,
+//         updatedAt: 1,
+//         role: "$userRole.role",
+//         totalLeave: "$leaveDetail.leave",
+//         usedLeave: "$leaveDetail.usedLeave"
+//       },
+//     });
+
+//     const user = await User.aggregate(dataPipeline);
+
+//     const totalPages = isPaginationEnabled
+//       ? Math.ceil(totalUser / (paginationObject(req.query).resultPerPage || 10))
+//       : 1;
+
+//     apiResponse(res, StatusCodes.OK, messages.USER_LIST, {
+//       user,
+//       totalCount: totalUser,
+//       totalPages,
+//     });
+//   } catch (error) {
+//     console.error("Aggregation Error:", error);
+//     handleError(res, error);
+//   }
+// };
+
+
+
 export const userList = async (req: Request, res: Response) => {
   try {
     const { search, role, pagination } = req.query;
@@ -762,7 +913,6 @@ export const userList = async (req: Request, res: Response) => {
       filterRoleId = new Types.ObjectId(role as string);
     }
 
-    // Shared base pipeline (used for both count and data)
     const basePipeline: any[] = [
       {
         $addFields: {
@@ -807,10 +957,54 @@ export const userList = async (req: Request, res: Response) => {
       {
         $lookup: {
           from: "leavebalances",
-          localField: "_id",
-          foreignField: "employeeId",
+          let: { empId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$employeeId", "$$empId"] },
+                    { $eq: ["$isDeleted", false] },
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                leave: 1,
+                paid: {
+                  $sum: {
+                    $map: {
+                      input: "$leaveHistory",
+                      as: "item",
+                      in: "$$item.paidLeaveUsed",
+                    },
+                  },
+                },
+                unpaid: {
+                  $sum: {
+                    $map: {
+                      input: "$leaveHistory",
+                      as: "item",
+                      in: "$$item.unpaidLeaveUsed",
+                    },
+                  },
+                },
+              },
+            },
+            {
+              $addFields: {
+                totalLeaveUsed: { $add: ["$paid", "$unpaid"] },
+              },
+            },
+            {
+              $project: {
+                leave: 1,
+                totalLeaveUsed: 1,
+              },
+            },
+          ],
           as: "leaveDetail",
-          pipeline: [{ $project: { _id: 1, leave: 1, usedLeave: 1 } }],
         },
       },
       {
@@ -844,18 +1038,15 @@ export const userList = async (req: Request, res: Response) => {
       });
     }
 
-    // Clone base pipeline for count query
+    // Clone for count query
     const countPipeline = JSON.parse(JSON.stringify(basePipeline));
     countPipeline.push({ $count: "total" });
 
-    // Run count query
     const countResult = await User.aggregate(countPipeline);
     const totalUser = countResult[0]?.total || 0;
 
-    // Prepare final pipeline for user data
     const dataPipeline = [...basePipeline];
 
-    // Apply sort and pagination
     if (isPaginationEnabled) {
       const paginationData = paginationObject(req.query);
       dataPipeline.push({ $sort: paginationData.sort || { createdAt: -1 } });
@@ -865,7 +1056,6 @@ export const userList = async (req: Request, res: Response) => {
       dataPipeline.push({ $sort: { createdAt: -1 } });
     }
 
-    // Final projection
     dataPipeline.push({
       $project: {
         firstName: 1,
@@ -878,17 +1068,19 @@ export const userList = async (req: Request, res: Response) => {
         updatedAt: 1,
         role: "$userRole.role",
         totalLeave: "$leaveDetail.leave",
-        usedLeave: "$leaveDetail.usedLeave"
+        usedLeave: "$leaveDetail.totalLeaveUsed",
       },
     });
 
     const user = await User.aggregate(dataPipeline);
 
     const totalPages = isPaginationEnabled
-      ? Math.ceil(totalUser / (paginationObject(req.query).resultPerPage || 10))
+      ? Math.ceil(
+          totalUser / (paginationObject(req.query).resultPerPage || 10)
+        )
       : 1;
 
-    apiResponse(res, StatusCodes.OK, messages.USER_LIST, {
+    return apiResponse(res, StatusCodes.OK, messages.USER_LIST, {
       user,
       totalCount: totalUser,
       totalPages,
@@ -898,6 +1090,7 @@ export const userList = async (req: Request, res: Response) => {
     handleError(res, error);
   }
 };
+
 
 
 export const forgotPassword = async (req: Request, res: Response) => {

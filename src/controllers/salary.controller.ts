@@ -376,8 +376,8 @@ export const generateSalary = async () => {
 
       // Calculate salary deduction
       const perDaySalary = baseSalary / totalDays;
-      const leaveDeducation = unpaidLeaves * perDaySalary;
-      const netSalary = baseSalary - leaveDeducation;
+      const leaveDeducation:any = Number((unpaidLeaves * perDaySalary)).toFixed(2)
+      const netSalary =Number( (baseSalary - leaveDeducation)).toFixed(2)
 
       // Create salary record
       await Salary.create({

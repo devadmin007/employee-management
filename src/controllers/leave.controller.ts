@@ -505,7 +505,7 @@ export const approveLeave = async (req: any, res: Response) => {
     );
 
     return apiResponse(res, StatusCodes.OK, "Leave status updated", {
-      leave: approvedLeave,
+      leave: approvedLeave
     });
   } catch (error) {
     handleError(res, error);
