@@ -350,7 +350,6 @@ export const generateSalary = async () => {
       const existingSalary = await Salary.findOne({
         employeeId,
         month: currentMonth,
-        year: currentYear,
       });
 
       if (existingSalary) {
@@ -389,7 +388,6 @@ export const generateSalary = async () => {
         netSalary,
         generatedAt,
         month: currentMonth,
-        year: currentYear,
       });
 
       console.log(
@@ -402,6 +400,7 @@ export const generateSalary = async () => {
     console.error("Error during salary generation:", error);
   }
 };
+
 export const getSalaryList = async (req: any, res: Response) => {
   try {
     const pagination = paginationObject(req.query);
