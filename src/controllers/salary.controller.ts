@@ -98,219 +98,302 @@ import { Leave } from "../models/leave.model";
 // };
 ////////////////////////////////////////
 
+// export const generateSalary = async () => {
+//   try {
+//     const generatedAt = new Date();
+
+//     // Current month, year and total days in this month
+
+//     const currentMonth = moment(generatedAt).format("MMMM");
+
+//     const currentYear = moment(generatedAt).year();
+
+//     // const totalDays = moment(generatedAt).daysInMonth();
+//     const totalDays = 30;
+//     // Start and end dates of the current month
+
+//     const monthStart = moment(generatedAt).startOf("month").toDate();
+
+//     const monthEnd = moment(generatedAt).endOf("month").toDate();
+
+//     // Utility function to calculate working leave days excluding weekends
+
+//     function getWorkingLeaveDaysInMonth(
+//       leaveStart: Date,
+//       leaveEnd: Date,
+//       monthStart: Date,
+//       monthEnd: Date
+//     ): number {
+//       // Clamp leave dates within the month boundaries
+
+//       const start = leaveStart < monthStart ? monthStart : leaveStart;
+
+//       const end = leaveEnd > monthEnd ? monthEnd : leaveEnd;
+
+//       if (end < start) return 0;
+
+//       let count = 0;
+
+//       let current = new Date(start);
+
+//       while (current <= end) {
+//         const day = current.getDay();
+
+//         if (day !== 0 && day !== 6) {
+//           // Skip Sunday (0) and Saturday (6)
+
+//           count++;
+//         }
+
+//         current.setDate(current.getDate() + 1);
+//       }
+
+//       return count;
+//     }
+
+//     // Fetch all active users
+
+//     const users = await User.find({ isDeleted: false });
+
+//     for (const user of users) {
+//       const employeeId = user._id;
+
+//       // Fetch user details for salary info
+
+//       const userDetails = await UserDetails.findOne({ userId: employeeId });
+
+//       if (!userDetails || !userDetails.currentSalary) {
+//         console.log(`Skipping user ${employeeId} due to missing salary info`);
+
+//         continue;
+//       }
+
+//       const baseSalary = userDetails.currentSalary;
+
+//       // Skip if salary already generated for current month
+
+//       const existingSalary = await Salary.findOne({
+//         employeeId,
+//         month: currentMonth,
+//       });
+
+//       if (existingSalary) {
+//         console.log(
+//           `Salary already generated for user ${employeeId} for month ${currentMonth}`
+//         );
+
+//         continue;
+//       }
+
+//       // Fetch current leave balance and extra leaves
+
+//       const leaveBalance = await LeaveBalance.findOne({ employeeId });
+
+//       if (!leaveBalance) {
+//         console.log(
+//           `No leave balance for user ${employeeId}, skipping leave deduction`
+//         );
+
+//         continue;
+//       }
+
+//       // Find all approved (or appropriate status) leaves overlapping this month
+
+//       const leaves = await Leave.find({
+//         employeeId: employeeId,
+
+//         status: "APPROVED", // Consider only approved leaves for deduction
+
+//         isDeleted: false,
+
+//         startDate: { $lte: monthEnd },
+
+//         endDate: { $gte: monthStart },
+//       });
+
+//       // Calculate total leave days in current month excluding weekends
+
+//       let totalLeaveDays = 0;
+
+//       leaves.forEach((leave: any) => {
+//         const leaveDays = getWorkingLeaveDaysInMonth(
+//           leave.startDate,
+
+//           leave.endDate,
+
+//           monthStart,
+
+//           monthEnd
+//         );
+
+//         // TODO: Add adjustment for half-days (start_leave_type/end_leave_type)
+
+//         // For now, counting full days
+
+//         totalLeaveDays += leaveDays;
+//       });
+
+//       // Calculate how many leaves can be covered by available balance
+
+//       const leaveBalanceAmount = leaveBalance.leave ?? 0;
+
+//       let deductibleLeaves = 0;
+
+//       let extraLeaveDeducted = 0;
+
+//       if (totalLeaveDays <= leaveBalanceAmount) {
+//         // All leaves can be covered by leave balance - no salary deduction
+
+//         deductibleLeaves = 0;
+
+//         leaveBalance.leave = leaveBalanceAmount - totalLeaveDays;
+//       } else {
+//         // Partial leave coverage
+
+//         deductibleLeaves = totalLeaveDays - leaveBalanceAmount;
+
+//         leaveBalance.leave = 0;
+
+//         // Deduct from extra leave if available
+
+//         const extraLeaveAvailable = leaveBalance.extraLeave ?? 0;
+
+//         if (deductibleLeaves <= extraLeaveAvailable) {
+//           extraLeaveDeducted = deductibleLeaves;
+
+//           deductibleLeaves = 0;
+
+//           leaveBalance.extraLeave = extraLeaveAvailable - extraLeaveDeducted;
+//         } else {
+//           extraLeaveDeducted = extraLeaveAvailable;
+
+//           deductibleLeaves -= extraLeaveAvailable;
+
+//           leaveBalance.extraLeave = 0;
+//         }
+//       }
+
+//       // Calculate per day salary based on total days in month
+
+//       const perDaySalary = baseSalary / totalDays;
+
+//       // Salary deduction = leave days needing deduction * per day salary
+
+//       const leaveDeduction = deductibleLeaves * perDaySalary;
+
+//       // Net salary after deduction
+
+//       const netSalary = baseSalary - leaveDeduction;
+
+//       // Save updated leave balances
+
+//       await leaveBalance.save();
+
+//       // Create salary record
+
+//       await Salary.create({
+//         employeeId: employeeId,
+
+//         baseSalary,
+
+//         leaveDays: totalLeaveDays,
+
+//         leaveDeducation: leaveDeduction,
+
+//         netSalary,
+
+//         generatedAt,
+
+//         month: currentMonth,
+
+//         extraLeaveDeducted,
+//       });
+
+//       console.log(
+//         `Salary generated for user ${employeeId} for month ${currentMonth}`
+//       );
+//     }
+
+//     console.log("Salary generation completed for all users.");
+//   } catch (error) {
+//     console.error("Error during salary generation:", error);
+//   }
+// };
+
+
 export const generateSalary = async () => {
   try {
     const generatedAt = new Date();
 
-    // Current month, year and total days in this month
-
+    // Current month and year
     const currentMonth = moment(generatedAt).format("MMMM");
-
     const currentYear = moment(generatedAt).year();
 
-    // const totalDays = moment(generatedAt).daysInMonth();
-    const totalDays = 30;
-    // Start and end dates of the current month
-
-    const monthStart = moment(generatedAt).startOf("month").toDate();
-
-    const monthEnd = moment(generatedAt).endOf("month").toDate();
-
-    // Utility function to calculate working leave days excluding weekends
-
-    function getWorkingLeaveDaysInMonth(
-      leaveStart: Date,
-      leaveEnd: Date,
-      monthStart: Date,
-      monthEnd: Date
-    ): number {
-      // Clamp leave dates within the month boundaries
-
-      const start = leaveStart < monthStart ? monthStart : leaveStart;
-
-      const end = leaveEnd > monthEnd ? monthEnd : leaveEnd;
-
-      if (end < start) return 0;
-
-      let count = 0;
-
-      let current = new Date(start);
-
-      while (current <= end) {
-        const day = current.getDay();
-
-        if (day !== 0 && day !== 6) {
-          // Skip Sunday (0) and Saturday (6)
-
-          count++;
-        }
-
-        current.setDate(current.getDate() + 1);
-      }
-
-      return count;
-    }
+    const totalDays = 30; // Assuming fixed month length (you can use moment().daysInMonth())
 
     // Fetch all active users
-
     const users = await User.find({ isDeleted: false });
 
     for (const user of users) {
       const employeeId = user._id;
 
-      // Fetch user details for salary info
-
+      // Get user salary details
       const userDetails = await UserDetails.findOne({ userId: employeeId });
-
       if (!userDetails || !userDetails.currentSalary) {
         console.log(`Skipping user ${employeeId} due to missing salary info`);
-
         continue;
       }
 
       const baseSalary = userDetails.currentSalary;
 
-      // Skip if salary already generated for current month
-
+      // Check if salary already generated for this month
       const existingSalary = await Salary.findOne({
         employeeId,
         month: currentMonth,
+        year: currentYear,
       });
 
       if (existingSalary) {
         console.log(
           `Salary already generated for user ${employeeId} for month ${currentMonth}`
         );
-
         continue;
       }
 
-      // Fetch current leave balance and extra leaves
-
+      // Fetch leave balance
       const leaveBalance = await LeaveBalance.findOne({ employeeId });
-
       if (!leaveBalance) {
-        console.log(
-          `No leave balance for user ${employeeId}, skipping leave deduction`
-        );
-
+        console.log(`No leave balance found for user ${employeeId}`);
         continue;
       }
 
-      // Find all approved (or appropriate status) leaves overlapping this month
+      // Find the leave history entry for the current month
+      const monthEntry = leaveBalance.leaveHistory.find(
+        (entry) => entry.month === currentMonth && entry.year === currentYear
+      );
 
-      const leaves = await Leave.find({
-        employeeId: employeeId,
+      // If no entry exists, no unpaid leaves
+      const unpaidLeaves = monthEntry ? monthEntry.unpaidLeaveUsed : 0;
 
-        status: "APPROVED", // Consider only approved leaves for deduction
-
-        isDeleted: false,
-
-        startDate: { $lte: monthEnd },
-
-        endDate: { $gte: monthStart },
-      });
-
-      // Calculate total leave days in current month excluding weekends
-
-      let totalLeaveDays = 0;
-
-      leaves.forEach((leave: any) => {
-        const leaveDays = getWorkingLeaveDaysInMonth(
-          leave.startDate,
-
-          leave.endDate,
-
-          monthStart,
-
-          monthEnd
-        );
-
-        // TODO: Add adjustment for half-days (start_leave_type/end_leave_type)
-
-        // For now, counting full days
-
-        totalLeaveDays += leaveDays;
-      });
-
-      // Calculate how many leaves can be covered by available balance
-
-      const leaveBalanceAmount = leaveBalance.leave ?? 0;
-
-      let deductibleLeaves = 0;
-
-      let extraLeaveDeducted = 0;
-
-      if (totalLeaveDays <= leaveBalanceAmount) {
-        // All leaves can be covered by leave balance - no salary deduction
-
-        deductibleLeaves = 0;
-
-        leaveBalance.leave = leaveBalanceAmount - totalLeaveDays;
-      } else {
-        // Partial leave coverage
-
-        deductibleLeaves = totalLeaveDays - leaveBalanceAmount;
-
-        leaveBalance.leave = 0;
-
-        // Deduct from extra leave if available
-
-        const extraLeaveAvailable = leaveBalance.extraLeave ?? 0;
-
-        if (deductibleLeaves <= extraLeaveAvailable) {
-          extraLeaveDeducted = deductibleLeaves;
-
-          deductibleLeaves = 0;
-
-          leaveBalance.extraLeave = extraLeaveAvailable - extraLeaveDeducted;
-        } else {
-          extraLeaveDeducted = extraLeaveAvailable;
-
-          deductibleLeaves -= extraLeaveAvailable;
-
-          leaveBalance.extraLeave = 0;
-        }
-      }
-
-      // Calculate per day salary based on total days in month
-
+      // Calculate salary deduction
       const perDaySalary = baseSalary / totalDays;
-
-      // Salary deduction = leave days needing deduction * per day salary
-
-      const leaveDeduction = deductibleLeaves * perDaySalary;
-
-      // Net salary after deduction
-
-      const netSalary = baseSalary - leaveDeduction;
-
-      // Save updated leave balances
-
-      await leaveBalance.save();
+      const leaveDeducation = unpaidLeaves * perDaySalary;
+      const netSalary = baseSalary - leaveDeducation;
 
       // Create salary record
-
       await Salary.create({
-        employeeId: employeeId,
-
+        employeeId,
         baseSalary,
-
-        leaveDays: totalLeaveDays,
-
-        leaveDeducation: leaveDeduction,
-
+        unpaidLeaves,
+        leaveDeducation,
         netSalary,
-
         generatedAt,
-
         month: currentMonth,
-
-        extraLeaveDeducted,
+        year: currentYear,
       });
 
       console.log(
-        `Salary generated for user ${employeeId} for month ${currentMonth}`
+        `Salary generated for user ${employeeId} for ${currentMonth} with ${unpaidLeaves} unpaid leaves`
       );
     }
 
@@ -319,7 +402,6 @@ export const generateSalary = async () => {
     console.error("Error during salary generation:", error);
   }
 };
-
 export const getSalaryList = async (req: any, res: Response) => {
   try {
     const pagination = paginationObject(req.query);
@@ -463,9 +545,8 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
 
     if (salaries.length === 0) {
       return handleError(res, {
-        message: `No salary records found for ${month || ""} ${
-          year || ""
-        }`.trim(),
+        message: `No salary records found for ${month || ""} ${year || ""
+          }`.trim(),
       });
     }
 
@@ -578,22 +659,22 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
       .text(
         "Extra",
         startX +
-          colWidths[0] +
-          colWidths[1] +
-          colWidths[2] +
-          colWidths[3] +
-          colWidths[4],
+        colWidths[0] +
+        colWidths[1] +
+        colWidths[2] +
+        colWidths[3] +
+        colWidths[4],
         startY
       )
       .text(
         "Generated At",
         startX +
-          colWidths[0] +
-          colWidths[1] +
-          colWidths[2] +
-          colWidths[3] +
-          colWidths[4] +
-          colWidths[5],
+        colWidths[0] +
+        colWidths[1] +
+        colWidths[2] +
+        colWidths[3] +
+        colWidths[4] +
+        colWidths[5],
         startY
       );
 
@@ -631,22 +712,22 @@ export const addSalaryPdf = async (req: Request, res: Response) => {
         .text(
           `${salary.extraLeave ?? 0}`,
           startX +
-            colWidths[0] +
-            colWidths[1] +
-            colWidths[2] +
-            colWidths[3] +
-            colWidths[4],
+          colWidths[0] +
+          colWidths[1] +
+          colWidths[2] +
+          colWidths[3] +
+          colWidths[4],
           y
         )
         .text(
           `${moment(salary.generatedAt).format("YYYY-MM-DD")}`,
           startX +
-            colWidths[0] +
-            colWidths[1] +
-            colWidths[2] +
-            colWidths[3] +
-            colWidths[4] +
-            colWidths[5],
+          colWidths[0] +
+          colWidths[1] +
+          colWidths[2] +
+          colWidths[3] +
+          colWidths[4] +
+          colWidths[5],
           y
         );
 

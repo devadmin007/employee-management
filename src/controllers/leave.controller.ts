@@ -38,7 +38,7 @@ export const addLeave = async (req: any, res: Response) => {
       req.userInfo?.role.role === "HR"
     ) {
       const roles = await Role.findOne({ role: "ADMIN" });
-     
+
       existingUser = await User.findOne({ role: roles?._id });
     }
 
@@ -321,6 +321,80 @@ export const deleteLeave = async (req: Request, res: Response) => {
   }
 };
 
+// export const approveLeave = async (req: any, res: Response) => {
+//   try {
+//     const leaveId = req.params.id;
+//     const userId = req.userInfo?.id;
+//     const { status } = req.body;
+
+//     if (!["APPROVED", "REJECT"].includes(status)) {
+//       return apiResponse(res, StatusCodes.BAD_REQUEST, "Invalid status value");
+//     }
+
+//     const existingLeave = await Leave.findById(leaveId);
+//     if (!existingLeave || existingLeave.isDeleted) {
+//       return apiResponse(res, StatusCodes.NOT_FOUND, messages.LEAVE_NOT_FOUND);
+//     }
+
+//     if (existingLeave.status !== "PENDING") {
+//       return apiResponse(
+//         res,
+//         StatusCodes.BAD_REQUEST,
+//         "Leave already processed"
+//       );
+//     }
+
+//     const leaveBalance = await LeaveBalance.findOne({
+//       employeeId: existingLeave.employeeId,
+//       isDeleted: false,
+//     });
+
+//     if (status === "APPROVED") {
+//       if (!leaveBalance) {
+//         return apiResponse(
+//           res,
+//           StatusCodes.BAD_REQUEST,
+//           "Leave balance not found"
+//         );
+//       }
+
+//       const leaveDays = Number(existingLeave.totalDays);
+
+//       if (isNaN(leaveDays)) {
+//         return apiResponse(
+//           res,
+//           StatusCodes.BAD_REQUEST,
+//           "Invalid or missing totalDays in leave"
+//         );
+//       }
+
+//       const availableLeave = Number(leaveBalance.leave ?? 0);
+//       const currentExtraLeave = Number(leaveBalance.extraLeave ?? 0);
+//       const currentUsedLeave = Number(leaveBalance.usedLeave ?? 0);
+
+//       const deductedLeave = Math.min(availableLeave, leaveDays);
+//       const extraLeaveUsed = Math.max(leaveDays - deductedLeave, 0);
+
+//       leaveBalance.leave = availableLeave - deductedLeave;
+//       leaveBalance.extraLeave = currentExtraLeave + extraLeaveUsed;
+//       leaveBalance.usedLeave = currentUsedLeave + leaveDays;
+
+//       await leaveBalance.save();
+//     }
+//     const approvedLeave = await Leave.findByIdAndUpdate(
+//       leaveId,
+//       { status, approveById: userId },
+//       { new: true }
+//     );
+
+//     return apiResponse(res, StatusCodes.OK, "Leave status updated", {
+//       leave: approvedLeave,
+//     });
+//   } catch (error) {
+//     handleError(res, error);
+//   }
+// };
+
 export const approveLeave = async (req: any, res: Response) => {
   try {
     const leaveId = req.params.id;
@@ -359,28 +433,71 @@ export const approveLeave = async (req: any, res: Response) => {
       }
 
       const leaveDays = Number(existingLeave.totalDays);
-
-      if (isNaN(leaveDays)) {
+      if (isNaN(leaveDays) || leaveDays <= 0) {
         return apiResponse(
           res,
           StatusCodes.BAD_REQUEST,
-          "Invalid or missing totalDays in leave"
+          "Invalid totalDays in leave"
         );
       }
 
       const availableLeave = Number(leaveBalance.leave ?? 0);
-      const currentExtraLeave = Number(leaveBalance.extraLeave ?? 0);
-      const currentUsedLeave = Number(leaveBalance.usedLeave ?? 0);
-
       const deductedLeave = Math.min(availableLeave, leaveDays);
-      const extraLeaveUsed = Math.max(leaveDays - deductedLeave, 0);
+      const unpaidLeaves = Math.max(leaveDays - deductedLeave, 0);
 
+      // Update paid leave balance
       leaveBalance.leave = availableLeave - deductedLeave;
-      leaveBalance.extraLeave = currentExtraLeave + extraLeaveUsed;
-      leaveBalance.usedLeave = currentUsedLeave + leaveDays;
+      leaveBalance.usedLeave = (leaveBalance.usedLeave ?? 0) + deductedLeave;
 
-      await leaveBalance.save();
+      // Update leaveHistory for current month
+      const currentMonth = moment(existingLeave.startDate).format("MMMM");
+      const currentYear = moment(existingLeave.startDate).year();
+
+      await LeaveBalance.updateOne(
+        { employeeId: existingLeave.employeeId, isDeleted: false },
+        {
+          $inc: {
+            leave: -deductedLeave,
+            usedLeave: deductedLeave,
+          },
+        }
+      );
+
+      // 2. Try updating existing month entry in leaveHistory
+      const updateResult = await LeaveBalance.updateOne(
+        {
+          employeeId: existingLeave.employeeId,
+          isDeleted: false,
+          "leaveHistory.month": currentMonth,
+          "leaveHistory.year": currentYear,
+        },
+        {
+          $inc: {
+            "leaveHistory.$.paidLeaveUsed": deductedLeave,
+            "leaveHistory.$.unpaidLeaveUsed": unpaidLeaves,
+          },
+        }
+      );
+
+      // 3. If no matching month entry, push new one
+      if (updateResult.matchedCount === 0) {
+        await LeaveBalance.updateOne(
+          { employeeId: existingLeave.employeeId, isDeleted: false },
+          {
+            $push: {
+              leaveHistory: {
+                month: currentMonth,
+                year: currentYear,
+                paidLeaveUsed: deductedLeave,
+                unpaidLeaveUsed: unpaidLeaves,
+              },
+            },
+          }
+        );
+      }
     }
+
+    // Update leave status and approveById
     const approvedLeave = await Leave.findByIdAndUpdate(
       leaveId,
       { status, approveById: userId },
