@@ -326,6 +326,7 @@ export const generateSalary = async () => {
     const generatedAt = new Date();
 
     // Current month and year
+    
     const currentMonth = moment(generatedAt).format("MMMM");
     const currentYear = moment(generatedAt).year();
 
